@@ -673,7 +673,6 @@ function Server_LoadTitles()
 
 	$Server::TitlesLoaded = 1;
 }
-Server_LoadTitles();
 
 function ServerTitleSet::find(%group, %name)
 {
@@ -1211,4 +1210,5 @@ package Server_Titles
 };
 activatePackage("Server_Titles");
 
+Server_LoadTitles();
 announce("\c6Titles have been reloaded. You might have to refresh your GUI using the refresh button to fix your Profile tab.");

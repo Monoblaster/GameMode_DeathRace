@@ -331,7 +331,7 @@ function MapSys_SetMapNext(%stage, %file)
 		if(isFile(%colorsetFile = $Server::MapSys_Path @ fileBase(%file) @ ".BLColorset"))
 			setColorsetFromFile(%colorsetFile);
 		else
-			setColorsetFromFile("config/server/colorset.txt");
+			setColorsetFromFile("Add-ons/Gamemode_DeathRace/colorset.txt");
 
 		if(isFile(%envFile = $Server::MapSys_Path @ fileBase(%file) @ ".txt"))
 			loadEnvironmentFromFile(%envFile, 1);

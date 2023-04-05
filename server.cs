@@ -55,3 +55,4 @@ PlayerMultiSlotNoJetArmor.useCustomPainEffects = 1;
 PlayerMultiSlotNoJetArmor.deathSound           = DeathCrySound;
 PlayerMultiSlotNoJetArmor.painSound            = PainCrySound;
 
+$Server::Name = "DeathRace";

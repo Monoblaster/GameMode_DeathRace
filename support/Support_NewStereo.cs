@@ -14,42 +14,6 @@ function DR_CreateBrickgroup()
 }
 schedule(0, 0, DR_CreateBrickgroup);
 
-function findMusicByName(%music, %val)
-{
-	if(isObject(%music))
-		return %music.getName();
-
-	if(!isObject(MusicCache)) new ScriptObject(MusicCache);
-	if(MusicCache.itemCount <= 0 || %val) //We don't need to cause lag everytime we try to find an Music
-	{
-		MusicCache.itemCount = 0;
-		for(%i = 0; %i < DatablockGroup.getCount(); %i++)
-		{
-			%obj = DatablockGroup.getObject(%i);
-			if(%obj.getClassName() $= "AudioProfile" && %obj.getDescription() == nameToID("AudioMusicLooping3D"))
-				if(strLen(%obj.uiName) > 0)
-				{
-					MusicCache.item[MusicCache.itemCount] = %obj;
-					MusicCache.itemCount++;
-				}
-		}
-	}
-
-	//First let's see if we find something to be exact
-	if(MusicCache.itemCount > 0)
-	{
-		for(%a = 0; %a < MusicCache.itemCount; %a++)
-		{
-			%objA = MusicCache.item[%a];
-			if(%objA.getClassName() $= "AudioProfile" && %objA.getDescription() == nameToID("AudioMusicLooping3D"))
-				if(%objA.uiName $= %music || striPos(%objA.uiName, %music) == 0)
-					return %objA.getName();
-		}
-	}
-
-	return -1;
-}
-schedule(1000, 0, findMusicByName, "test", 1);
 
 if(!isObject(StereoHandlerGroup))
 	new SimSet(StereoHandlerGroup);
@@ -92,7 +56,7 @@ function serverCmdAutoStereo(%client)
 
 function serverCmdRandomStereo(%client)
 {
-	if(MusicCache.itemCount <= 0)
+	if(MusicDataCache.itemCount <= 0)
 		return;
 
 	if(!isObject(%player = %client.player))
@@ -134,7 +98,7 @@ function serverCmdRandomStereo(%client)
 				BrickGroup_48.add(%mount.stereoHandler);
 		}
 
-		%musicData = MusicCache.item[getRandom(0, MusicCache.itemCount-1)];
+		%musicData = MusicDataCache.item[getRandom(0, MusicDataCache.itemCount-1)];
 
 		%brick = %mount.stereoHandler;
 
@@ -227,8 +191,6 @@ function serverCmdStereoHelp(%client)
 	%client.chatMessage("You may need to page up if you didn't see the \"Welcome\" message.");
 }
 
-if(isPackage(VehicleStereo)) //Deactivate the old stereo
-	deactivatePackage(VehicleStereo);
 
 package VehicleStereo
 {
@@ -403,6 +365,7 @@ package VehicleStereo
 		Parent::onMount(%this, %player, %obj, %a, %b, %c, %d, %e, %f);
 	}
 };
+deactivatePackage(VehicleStereo);
 activatePackage(VehicleStereo);
 
 function GameConnection::ToggleStereoLight(%this)
