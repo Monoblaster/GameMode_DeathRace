@@ -59,3 +59,5 @@ PlayerMultiSlotNoJetArmor.painSound            = PainCrySound;
 $Server::Name = "DeathRace";
 $Pref::Server::MaxPlayers = 48;
 
+HorseArmor.maxForwardSpeed = 30;
+gc_PumaVehicle.maxWheelSpeed = 30;
