@@ -230,12 +230,10 @@ function CustomMinigameTeamSO::removeClient(%team, %client, %noRespawn, %noInit)
 	{
 		if(%team.member[%i] == %client)
 		{
-			for(%j = %i + 1; %j < %team.numMembers; %j++)
+			for(%j = %i; (%j + 1) < %team.numMembers; %j++)
 			{
-				%team.member[%j - 1] = %team.member[%j];
+				%team.member[%j] = %team.member[%j + 1];
 			}
-
-			%team.member[%team.numMembers - 1] = "";
 			%team.numMembers--;
 
 			break;

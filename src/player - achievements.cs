@@ -1,13 +1,15 @@
 function ServerAchievement::onAdd(%achievement)
 {
-	if(isObject(%found = Server_AchievementGroup.find(%achievement.uiName)))
+	if(%achievement.uiName $= "")
 	{
-		%found.delete();
+		warn("Invalid achievement uiName title" SPC %achievement.getName());
+		%achievement.delete();
 		return;
 	}
 
-	if(%achievement.uiName $= "")
+	if(%achievement.rewardTitle !$= "" && !isObject(%achievement.rewardTitle))
 	{
+		warn("Invalid achievement reward title" SPC %achievement.uiName);
 		%achievement.delete();
 		return;
 	}
@@ -119,32 +121,32 @@ function ServerAchievement::onCheck(%achievement, %client)
 
 			if(%name $= "kills")
 			{
-				if(%client.DeathRaceData["totalKills"] >= %rewardAmt)
+				if(%client.DR_totalKills >= %rewardAmt)
 					%check++;
 			}
 			else if(%name $= "points")
 			{
-				if(%client.DeathRaceData["totalPoints"] >= %rewardAmt)
+				if(%client.DR_totalPoints >= %rewardAmt)
 					%check++;
 			}
 			else if(%name $= "rounds")
 			{
-				if(%client.DeathRaceData["totalRounds"] >= %rewardAmt)
+				if(%client.DR_totalRounds >= %rewardAmt)
 					%check++;
 			}
 			else if(%name $= "deaths")
 			{
-				if(%client.DeathRaceData["totalDeaths"] >= %rewardAmt)
+				if(%client.DR_totalDeaths >= %rewardAmt)
 					%check++;
 			}
 			else if(%name $= "winsByButton")
 			{
-				if(%client.DeathRaceData["totalWinsByButton"] >= %rewardAmt)
+				if(%client.DR_totalWinsByButton >= %rewardAmt)
 					%check++;
 			}
 			else if(%name $= "wins")
 			{
-				if(%client.DeathRaceData["totalWins"] >= %rewardAmt)
+				if(%client.DR_totalWins >= %rewardAmt)
 					%check++;
 			}
 			else if(%name $= "playtime") // minutes
@@ -189,27 +191,27 @@ function ServerAchievement::onCheckDetail(%achievement, %client)
 			%tempStr = "";
 			if(%name $= "kills")
 			{
-				%tempStr = (%rewardAmt == 1 ? "kill" : "kills") @ " " @ %client.DeathRaceData["totalKills"] @ " " @ %rewardAmt;
+				%tempStr = (%rewardAmt == 1 ? "kill" : "kills") @ " " @ %client.DR_totalKills @ " " @ %rewardAmt;
 			}
 			else if(%name $= "points")
 			{
-				%tempStr = (%rewardAmt == 1 ? "point" : "points") @ " " @ %client.DeathRaceData["totalPoints"] @ " " @ %rewardAmt;
+				%tempStr = (%rewardAmt == 1 ? "point" : "points") @ " " @ %client.DR_totalPoints @ " " @ %rewardAmt;
 			}
 			else if(%name $= "rounds")
 			{
-				%tempStr = (%rewardAmt == 1 ? "round" : "rounds") @ " " @ %client.DeathRaceData["totalRounds"] @ " " @ %rewardAmt;
+				%tempStr = (%rewardAmt == 1 ? "round" : "rounds") @ " " @ %client.DR_totalRounds @ " " @ %rewardAmt;
 			}
 			else if(%name $= "deaths")
 			{
-				%tempStr = (%rewardAmt == 1 ? "death" : "deaths") @ " " @ %client.DeathRaceData["totalDeaths"] @ " " @ %rewardAmt;
+				%tempStr = (%rewardAmt == 1 ? "death" : "deaths") @ " " @ %client.DR_totalDeaths @ " " @ %rewardAmt;
 			}
 			else if(%name $= "winsByButton")
 			{
-				%tempStr = (%rewardAmt == 1 ? "win" : "wins") @ " " @ %client.DeathRaceData["totalWinsByButton"] @ " " @ %rewardAmt;
+				%tempStr = (%rewardAmt == 1 ? "win" : "wins") @ " " @ %client.DR_totalWinsByButton @ " " @ %rewardAmt;
 			}
 			else if(%name $= "wins")
 			{
-				%tempStr = (%rewardAmt == 1 ? "win" : "wins") @ " " @ %client.DeathRaceData["totalWins"] @ " " @ %rewardAmt;
+				%tempStr = (%rewardAmt == 1 ? "win" : "wins") @ " " @ %client.DR_totalWins @ " " @ %rewardAmt;
 			}
 			else if(%name $= "playtime") // minutes
 			{
@@ -623,7 +625,10 @@ function GameConnection::addMoreLols(%client, %lol)
 function Server_LoadAchievements()
 {
 	if(isObject(Server_AchievementGroup))
+	{
+		Server_AchievementGroup.clearall();
 		Server_AchievementGroup.delete();
+	}
 	
 	new ScriptGroup(Server_AchievementGroup)
 	{
@@ -636,8 +641,7 @@ function Server_LoadAchievements()
 
 	// new ScriptObject("DRAch_Die")
 	// {
-	//	superclass = "ServerAchievement";
-	// 	class = "DieAchievement";
+	// 	class = "ServerAchievement";
 	// 	uiName = "Die";
 	// 	isSecret = 0;
 	// 	isHidden = 0;
@@ -651,24 +655,20 @@ function Server_LoadAchievements()
 
 	// example of a live object - some stuff is just simple and no need to create a custom function (such as points, titles, value checks)
 	// Add superclass back if you make your own class
-	if(isObject(%title = Server_TitleGroup.objIndex["Unstoppable"])) 					// Check if achievement has a title before it is made - not needed if it does not have a title
+	new ScriptObject("DRAch_Unstoppable")											// Name of achievement in safe name
 	{
-		new ScriptObject("DRAch_Unstoppable")											// Name of achievement in safe name
-		{
-			//superclass		= "ServerAchievement";										// Never change superclass - it's how the object functions - if you change this class but keep the name you have to restart the server/game
-			class 			= "ServerAchievement";										// Same as superclass unless we have a complicated/custom check using class::onCheck/onUnlock/onCheckDetail
-			uiName			= "Unstoppable";											// Name of the achievement, careful with non-english/custom chars since it uses game default safe name check
-			isSecret		= 1;														// Hides description/name until it is unlocked, yes this can be spoiled easier, see isHidden if you really don't want players to see how they unlock it
-			isHidden		= 0;														// Hides all stats (unlocked/locked) and does not appear in achievement list unless unlocked
-			description		= "Get a total of 100 player kills.";						// Description of achievement
-			hasReward		= 1;														// If it has an award it'll call the default onUnlock unless it has a custom one as class::onUnlock
-			rewardPoints	= 0;														// How many points to award the player
-			rewardCheck		= "kills 100";												// Multiple checks are accepted in tabs (\t), first one is value name, second one is value check, see above for types of value checks
-			rewardTitle		= %title.uiName;													// Reward title in ID/constant so it's easier to find and award the player
-			rewardTextML	= "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop>";	// ML text for chat of the reward
-			rewardText		= "title " @ %title.uiName;									// No ML text for console or other case of the reward
-		};																				// Needs a ; to create object (you get a compiler error anyway)
-	}																					// end if statement
+		class 			= "ServerAchievement";										// Same as superclass unless we have a complicated/custom check using class::onCheck/onUnlock/onCheckDetail
+		uiName			= "Unstoppable";											// Name of the achievement, careful with non-english/custom chars since it uses game default safe name check
+		isSecret		= 1;														// Hides description/name until it is unlocked, yes this can be spoiled easier, see isHidden if you really don't want players to see how they unlock it
+		isHidden		= 0;														// Hides all stats (unlocked/locked) and does not appear in achievement list unless unlocked
+		description		= "Get a total of 100 player kills.";						// Description of achievement
+		hasReward		= 1;														// If it has an award it'll call the default onUnlock unless it has a custom one as class::onUnlock
+		rewardPoints	= 0;														// How many points to award the player
+		rewardCheck		= "kills 100";												// Multiple checks are accepted in tabs (\t), first one is value name, second one is value check, see above for types of value checks
+		rewardTitle		= Server_TitleGroup.objIndex["Unstoppable"].uiName;													// Reward title in ID/constant so it's easier to find and award the player
+		rewardTextML	= "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop>";	// ML text for chat of the reward
+		rewardText		= "title " @ %title.uiName;									// No ML text for console or other case of the reward
+	};																				// Needs a ; to create object (you get a compiler error anyway
 
 	new ScriptObject("DRAch_On_the_kill")
 	{
@@ -684,78 +684,66 @@ function Server_LoadAchievements()
 		rewardText = "25 points";
 	};
 
-	if(isObject(%title = Server_TitleGroup.objIndex["Button_Presser"])) // example of multiple rewards
+	new ScriptObject("DRAch_I_win")
 	{
-		new ScriptObject("DRAch_I_win")
-		{
-			class = "ServerAchievement";
-			uiName = "I win!";
-			isSecret = 0;
-			isHidden = 0;
-			description = "Win a game by pressing the button at the end of the race. (Also counts with team)";
-			hasReward = 1;
-			rewardCheck = "winsByButton 1";
-			rewardPoints = 15;
-			rewardTitle = %title.uiName;
-			rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c315 points";
-			rewardText = "title " @ %title.uiName @ " and 10 points";
-		};
-	}
+		class = "ServerAchievement";
+		uiName = "I win!";
+		isSecret = 0;
+		isHidden = 0;
+		description = "Win a game by pressing the button at the end of the race. (Also counts with team)";
+		hasReward = 1;
+		rewardCheck = "winsByButton 1";
+		rewardPoints = 15;
+		rewardTitle = Server_TitleGroup.objIndex["Button_Presser"].uiName;
+		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c315 points";
+		rewardText = "title " @ %title.uiName @ " and 10 points";
+	};
 
-	if(isObject(%title = Server_TitleGroup.objIndex["Veteran_Driver"]))
+	new ScriptObject("DRAch_Veteran_Driver")
 	{
-		new ScriptObject("DRAch_Veteran_Driver")
-		{
-			class = "ServerAchievement";
-			uiName = "Veteran Driver";
-			isSecret = 1;
-			isHidden = 0;
-			description = "Win a game by pressing the button at the end of the race 100 times. (Also counts with team)";
-			hasReward = 1;
-			rewardCheck = "winsByButton 100";
-			rewardPoints = 75;
-			rewardTitle = %title.uiName;
-			rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c375 points";
-			rewardText = "title " @ %title.uiName @ " and 75 points";
-		};
-	}
+		class = "ServerAchievement";
+		uiName = "Veteran Driver";
+		isSecret = 1;
+		isHidden = 0;
+		description = "Win a game by pressing the button at the end of the race 100 times. (Also counts with team)";
+		hasReward = 1;
+		rewardCheck = "winsByButton 100";
+		rewardPoints = 75;
+		rewardTitle = Server_TitleGroup.objIndex["Veteran_Driver"].uiNarewardTitleme;
+		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c375 points";
+		rewardText = "title " @ %title.uiName @ " and 75 points";
+	};
 
-	if(isObject(%title = Server_TitleGroup.objIndex["Uber"]))
+	new ScriptObject("DRAch_I_am_a_winner")
 	{
-		new ScriptObject("DRAch_I_am_a_winner")
-		{
-			class = "ServerAchievement";
-			uiName = "I am a winner!";
-			isSecret = 0;
-			isHidden = 0;
-			description = "Win a game by pressing the button at the end of the race 10 times. (Also counts with team)";
-			hasReward = 1;
-			rewardCheck = "winsByButton 10";
-			rewardPoints = 25;
-			rewardTitle = %title.uiName;
-			rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c325 points";
-			rewardText = "title " @ %title.uiName @ " and 25 points";
-		};
-	}
-
-	if(isObject(%title = Server_TitleGroup.objIndex["Demolition_Uber"]))
-	{
-		new ScriptObject("DRAch_Experienced_Driver")
-		{
-			class = "ServerAchievement";
-			uiName = "Experienced Driver";
-			isSecret = 0;
-			isHidden = 0;
-			description = "Win a game by pressing the button at the end of the race 25 times. (Also counts with team)";
-			hasReward = 1;
-			rewardCheck = "winsByButton 25";
-			rewardPoints = 40;
-			rewardTitle = %title.uiName;
-			rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c340 points";
-			rewardText = "title " @ %title.uiName @ "and 40 points";
-		};
-	}
+		class = "ServerAchievement";
+		uiName = "I am a winner!";
+		isSecret = 0;
+		isHidden = 0;
+		description = "Win a game by pressing the button at the end of the race 10 times. (Also counts with team)";
+		hasReward = 1;
+		rewardCheck = "winsByButton 10";
+		rewardPoints = 25;
+		rewardTitle = Server_TitleGroup.objIndex["Uber"].uiName;
+		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c325 points";
+		rewardText = "title " @ %title.uiName @ " and 25 points";
+	};
 	
+	new ScriptObject("DRAch_Experienced_Driver")
+	{
+		class = "ServerAchievement";
+		uiName = "Experienced Driver";
+		isSecret = 0;
+		isHidden = 0;
+		description = "Win a game by pressing the button at the end of the race 25 times. (Also counts with team)";
+		hasReward = 1;
+		rewardCheck = "winsByButton 25";
+		rewardPoints = 40;
+		rewardTitle = Server_TitleGroup.objIndex["Demolition_Uber"].uiName;
+		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c340 points";
+		rewardText = "title " @ %title.uiName @ "and 40 points";
+	};
+
 	new ScriptObject("DRAch_Marathon")
 	{
 		class = "ServerAchievement";
@@ -771,161 +759,133 @@ function Server_LoadAchievements()
 		rewardText = "30 points";
 	};
 
-	if(isObject(%title = Server_TitleGroup.objIndex["Addicted"]))
+	new ScriptObject("DRAch_DeathRace_Addiction")
 	{
-		new ScriptObject("DRAch_DeathRace_Addiction")
-		{
-			class = "ServerAchievement";
-			uiName = "Deathrace Addiction";
-			isSecret = 0;
-			isHidden = 0;
-			description = "Play DeathRace for a total time of 10 hours.";
-			hasReward = 1;
-			rewardCheck = "playtime 600";
-			rewardPoints = 0;
-			rewardTitle = %title.uiName;
-			rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop>";
-			rewardText = "title " @ %title.uiName;
-		};
-	}
+		class = "ServerAchievement";
+		uiName = "Deathrace Addiction";
+		isSecret = 0;
+		isHidden = 0;
+		description = "Play DeathRace for a total time of 10 hours.";
+		hasReward = 1;
+		rewardCheck = "playtime 600";
+		rewardPoints = 0;
+		rewardTitle = Server_TitleGroup.objIndex["Addicted"].uiName;
+		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop>";
+		rewardText = "title " @ %title.uiName;
+	};
 
-	if(isObject(%title = Server_TitleGroup.objIndex["Bloodthirsty"]))
+	new ScriptObject("DRAch_Bloodthirsty")
 	{
-		new ScriptObject("DRAch_Bloodthirsty")
-		{
-			class = "ServerAchievement";
-			uiName = "Bloodthirsty";
-			isSecret = 0;
-			isHidden = 0;
-			description = "Get a triple kill.";
-			hasReward = 1;
-			rewardPoints = 50;
-			rewardTitle = %title.uiName;
-			rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c350 points";
-			rewardText = "title " @ %title.uiName @ " and 50 points";
-		};
-	}
+		class = "ServerAchievement";
+		uiName = "Bloodthirsty";
+		isSecret = 0;
+		isHidden = 0;
+		description = "Get a triple kill.";
+		hasReward = 1;
+		rewardPoints = 50;
+		rewardTitle = Server_TitleGroup.objIndex["Bloodthirsty"].uiName;
+		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c350 points";
+		rewardText = "title " @ %title.uiName @ " and 50 points";
+	};
 
 	// Map achievements
-
-	if(isObject(%title = Server_TitleGroup.objIndex["Mt_Luneth"]))
+	new ScriptObject("DRAch_Mountain_of_Death_Expert")
 	{
-		new ScriptObject("DRAch_Mountain_of_Death_Expert")
-		{
-			class = "ServerAchievement";
-			uiName = "Mountain of Death Expert";
-			isSecret = 1;
-			isHidden = 0;
-			description = "Finish Mountain of Death by pressing the win button 10 times.";
-			hasReward = 1;
-			rewardPoints = 20;
-			rewardTitle = %title.uiName;
-			rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
-			rewardText = "title " @ %title.uiName @ " and 20 points";
-		};
-	}
+		class = "ServerAchievement";
+		uiName = "Mountain of Death Expert";
+		isSecret = 1;
+		isHidden = 0;
+		description = "Finish Mountain of Death by pressing the win button 10 times.";
+		hasReward = 1;
+		rewardPoints = 20;
+		rewardTitle = Server_TitleGroup.objIndex["Mt_Luneth"].uiName;
+		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
+		rewardText = "title " @ %title.uiName @ " and 20 points";
+	};
 
-	if(isObject(%title = Server_TitleGroup.objIndex["Tropical"]))
+	new ScriptObject("DRAch_Beachland_Expert")
 	{
-		new ScriptObject("DRAch_Beachland_Expert")
-		{
-			class = "ServerAchievement";
-			uiName = "Beachland Expert";
-			isSecret = 1;
-			isHidden = 0;
-			description = "Finish Beachland by pressing the win button 10 times.";
-			hasReward = 1;
-			rewardPoints = 20;
-			rewardTitle = %title.uiName;
-			rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
-			rewardText = "title " @ %title.uiName @ " and 20 points";
-		};
-	}
+		class = "ServerAchievement";
+		uiName = "Beachland Expert";
+		isSecret = 1;
+		isHidden = 0;
+		description = "Finish Beachland by pressing the win button 10 times.";
+		hasReward = 1;
+		rewardPoints = 20;
+		rewardTitle = Server_TitleGroup.objIndex["Tropical"].uiName;
+		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
+		rewardText = "title " @ %title.uiName @ " and 20 points";
+	};
 
-	if(isObject(%title = Server_TitleGroup.objIndex["Explosive"]))
+	new ScriptObject("DRAch_Lethal_Lava_Jumps_Expert")
 	{
-		new ScriptObject("DRAch_Lethal_Lava_Jumps_Expert")
-		{
-			class = "ServerAchievement";
-			uiName = "Lethal Lava Jumps Expert";
-			isSecret = 1;
-			isHidden = 0;
-			description = "Finish Lethal Lava Jumps by pressing the win button 10 times.";
-			hasReward = 1;
-			rewardPoints = 20;
-			rewardTitle = %title.uiName;
-			rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
-			rewardText = "title " @ %title.uiName @ " and 20 points";
-		};
-	}
+		class = "ServerAchievement";
+		uiName = "Lethal Lava Jumps Expert";
+		isSecret = 1;
+		isHidden = 0;
+		description = "Finish Lethal Lava Jumps by pressing the win button 10 times.";
+		hasReward = 1;
+		rewardPoints = 20;
+		rewardTitle = Server_TitleGroup.objIndex["Explosive"].uiName;
+		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
+		rewardText = "title " @ %title.uiName @ " and 20 points";
+	};
 
-	if(isObject(%title = Server_TitleGroup.objIndex["Off_Road"]))
+	new ScriptObject("DRAch_Rocky_Road_Expert")
 	{
-		new ScriptObject("DRAch_Rocky_Road_Expert")
-		{
-			class = "ServerAchievement";
-			uiName = "Rocky Road Expert";
-			isSecret = 1;
-			isHidden = 0;
-			description = "Finish Rocky Road by pressing the win button 10 times.";
-			hasReward = 1;
-			rewardPoints = 20;
-			rewardTitle = %title.uiName;
-			rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
-			rewardText = "title " @ %title.uiName @ " and 20 points";
-		};
-	}
+		class = "ServerAchievement";
+		uiName = "Rocky Road Expert";
+		isSecret = 1;
+		isHidden = 0;
+		description = "Finish Rocky Road by pressing the win button 10 times.";
+		hasReward = 1;
+		rewardPoints = 20;
+		rewardTitle = Server_TitleGroup.objIndex["Off_Road"].uiName;
+		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
+		rewardText = "title " @ %title.uiName @ " and 20 points";
+	};
 
-	if(isObject(%title = Server_TitleGroup.objIndex["Aquifer"]))
+	new ScriptObject("DRAch_Rough_Rapids_Expert")
 	{
-		new ScriptObject("DRAch_Rough_Rapids_Expert")
-		{
-			class = "ServerAchievement";
-			uiName = "Rough Rapids Expert";
-			isSecret = 1;
-			isHidden = 0;
-			description = "Finish Rough Rapids by pressing the win button 10 times.";
-			hasReward = 1;
-			rewardPoints = 20;
-			rewardTitle = %title.uiName;
-			rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
-			rewardText = "title " @ %title.uiName @ " and 20 points";
-		};
-	}
+		class = "ServerAchievement";
+		uiName = "Rough Rapids Expert";
+		isSecret = 1;
+		isHidden = 0;
+		description = "Finish Rough Rapids by pressing the win button 10 times.";
+		hasReward = 1;
+		rewardPoints = 20;
+		rewardTitle = Server_TitleGroup.objIndex["Aquifer"].uiName;
+		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
+		rewardText = "title " @ %title.uiName @ " and 20 points";
+	};
 
-	if(isObject(%title = Server_TitleGroup.objIndex["All_Terrain"]))
+	new ScriptObject("DRAch_Desert_Trove_Expert")
 	{
-		new ScriptObject("DRAch_Desert_Trove_Expert")
-		{
-			class = "ServerAchievement";
-			uiName = "Desert Trove Expert";
-			isSecret = 1;
-			isHidden = 0;
-			description = "Finish Desert Trove by pressing the win button 10 times.";
-			hasReward = 1;
-			rewardPoints = 20;
-			rewardTitle = %title.uiName;
-			rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
-			rewardText = "title " @ %title.uiName @ " and 20 points";
-		};
-	}
+		class = "ServerAchievement";
+		uiName = "Desert Trove Expert";
+		isSecret = 1;
+		isHidden = 0;
+		description = "Finish Desert Trove by pressing the win button 10 times.";
+		hasReward = 1;
+		rewardPoints = 20;
+		rewardTitle = Server_TitleGroup.objIndex["All_Terrain"].uiName;
+		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
+		rewardText = "title " @ %title.uiName @ " and 20 points";
+	};
 
-	if(isObject(%title = Server_TitleGroup.objIndex["Chop_Wood"]))
+	new ScriptObject("DRAch_Finicky_Forest_Expert")
 	{
-		new ScriptObject("DRAch_Finicky_Forest_Expert")
-		{
-			class = "ServerAchievement";
-			uiName = "Finicky Forest Expert";
-			isSecret = 1;
-			isHidden = 0;
-			description = "Finish Finicky Forest by pressing the win button 10 times.";
-			hasReward = 1;
-			rewardPoints = 20;
-			rewardTitle = %title.uiName;
-			rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
-			rewardText = "title " @ %title.uiName @ " and 20 points";
-		};
-	}
+		class = "ServerAchievement";
+		uiName = "Finicky Forest Expert";
+		isSecret = 1;
+		isHidden = 0;
+		description = "Finish Finicky Forest by pressing the win button 10 times.";
+		hasReward = 1;
+		rewardPoints = 20;
+		rewardTitle = Server_TitleGroup.objIndex["Chop_Wood"].uiName;
+		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
+		rewardText = "title " @ %title.uiName @ " and 20 points";
+	};
 }
 Server_LoadAchievements();
 

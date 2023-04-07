@@ -92,15 +92,15 @@ function DR_Leaderboard_Scan3(%outdated)
 function GameConnection::UpdateToLeaderboard(%client, %ignoreUpdate)
 {
 	%bl_id = %client.getBLID();
-	%scoreLead   = %client.DeathRaceData["totalPoints"] * 0.7 + %client.DeathRaceData["giveDamage"] * 0.3 + %client.DeathRaceData["totalKills"] * 0.2 - %client.DeathRaceData["totalDeaths"] * 0.5 + (%client.DeathRaceData["totalRounds"] - %client.DeathRaceData["totalWins"]) * 0.55 + %client.DeathRaceData["totalItemsBought"] * 1 + %client.DeathRaceData["PlayTime"]/60;
-	%fieldString = (%client.DeathRaceData["totalPoints"] | 0) TAB 
-		(%client.DeathRaceData["giveDamage"] | 0) TAB 
-		(%client.DeathRaceData["totalKills"] | 0) TAB 
-		(%client.DeathRaceData["totalDeaths"] | 0) TAB 
-		(%client.DeathRaceData["totalWins"] | 0) TAB 
-		(%client.DeathRaceData["totalRounds"] | 0) TAB 
-		(%client.DeathRaceData["totalItemsBought"] | 0) TAB 
-		(%client.DeathRaceData["PlayTime"] | 0) TAB 
+	%scoreLead   = %client.DR_totalPoints * 0.7 + %client.DR_giveDamage * 0.3 + %client.DR_totalKills * 0.2 - %client.DR_totalDeaths * 0.5 + (%client.DR_totalRounds - %client.DR_totalWins) * 0.55 + %client.DR_totalItemsBought * 1 + %client.DR_PlayTime/60;
+	%fieldString = (%client.DR_totalPoints | 0) TAB 
+		(%client.DR_giveDamage | 0) TAB 
+		(%client.DR_totalKills | 0) TAB 
+		(%client.DR_totalDeaths | 0) TAB 
+		(%client.DR_totalWins | 0) TAB 
+		(%client.DR_totalRounds | 0) TAB 
+		(%client.DR_totalItemsBought | 0) TAB 
+		(%client.DR_PlayTime | 0) TAB 
 		%scoreLead;
 
 	if(DR_LeaderboardList.getRowNumByID(%bl_id) >= 0)

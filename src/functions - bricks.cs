@@ -231,12 +231,9 @@ function fxDTSBrick::StartDeathRace(%this, %time, %client)
 	%totalRounds = $Pref::Server::MapChanger::MaxWinsBeforeRoundChange;
 	
 	%mini.isStartingDR = 1;
-	//%mini.messageAll('MsgUploadStart',"<font:Arial Black:25>\c6The race will start in \c4" @ %time @ " second(s)\c6! Prepare!");
 	%mini.messageAll('MsgUploadStart',"<font:Arial Black:25>\c6New Deathrace round! Race will begin in \c3" @ %time @ " second" @ (%time == 1 ? "" : "s") @ "\c6.");
-	// if(%rounds <= %totalRounds) %mini.messageAll('MsgUploadStart',"\c6Map:\c3 " @ $Server::MapChanger::CurrentMap SPC "[Round " @ %rounds + 1 @ "/" @ %totalRounds @ "]");
 
 	%this.ResetDeathRace();
-//	messageAll('',"\c3The server has been running for \c2" @ getServerUpTimeString() @ ".");
 
 	%countBrick["Green"] = %group.NTObjectCount["_StartLight1"];
 	for(%gg=0;%gg<%countVeA;%gg++)
@@ -259,8 +256,8 @@ function fxDTSBrick::StartDeathRace(%this, %time, %client)
 		%brick["Red"].setColorFX(3);
 	}
 
-	%mini.deathRaceData["time"] = %time;
-	%mini.deathRaceData["sch"] = %this.schedule(1000,DeathRaceLoop,%client);
+	%mini.DR_time = %time;
+	%mini.DR_sch = %this.schedule(1000,DeathRaceLoop,%client);
 }
 
 function fxDTSBrick::WinDeathRace(%this, %client)
@@ -311,11 +308,11 @@ function fxDTSBrick::WinDeathRace(%this, %client)
 				{
 					%teamMember.incScore(%teamScore);
 
-					%teamMember.DeathRaceData["FirstWin"] = 1;
+					%teamMember.DR_FirstWin = 1;
 					%teamMember.unlockAchievement("I Win!");
 					
-					%teamMember.DeathRaceData["TotalWins"]++;
-					%teamMember.DeathRaceData["TotalWinsByButton"]++;
+					%teamMember.DR_TotalWins++;
+					%teamMember.DR_TotalWinsByButton++;
 
 					%teamMember.unlockAchievement("I am a winner!"); 
 					%teamMember.unlockAchievement("Veteran Driver");
@@ -324,7 +321,11 @@ function fxDTSBrick::WinDeathRace(%this, %client)
 					if(%mapName !$= "")
 					{
 						%teamMember.deathRaceData[%mapVarName]++;
-						%teamMember.unlockAchievement(%mapName @ " Expert");
+						if(%teamMember.deathRaceData[%mapVarName] >= 10)
+						{
+							%teamMember.unlockAchievement(%mapName @ " Expert");
+						}
+						
 					}
 				}
 			}
@@ -335,7 +336,7 @@ function fxDTSBrick::WinDeathRace(%this, %client)
 		%timeString = getTimeString(mFloor(%time));
 		%mini.messageAll('MsgUploadEnd',"<font:arial bold:22>" @ %client.team.colorHexStr @ %client.getPlayerName() @ " (" @ %score @ " points)" @ %winMsg);
 		echo("DRMini - " @ %client.getPlayerName() @ " (" @ %score @ " points)" @ %winMsg);
-		if(%mini.deathRaceData["crazyspeed"])
+		if(%mini.DR_crazyspeed)
 			%mini.messageAll('',"<font:arial bold:20>  \c4-> \c6Crazy race was completed in \c3" @ %timeString @ "\c6.");
 		else
 			%mini.messageAll('',"<font:arial bold:20>  \c4-> \c6Regular race was completed in \c3" @ %timeString @ "\c6.");
@@ -343,11 +344,11 @@ function fxDTSBrick::WinDeathRace(%this, %client)
 		%mini.schedulereset();
 		%mini.resetting = 1;
 
-		%client.DeathRaceData["FirstWin"] = 1;
+		%client.DR_FirstWin = 1;
 		%client.unlockAchievement("I Win!");
 		
-		%client.DeathRaceData["TotalWins"]++;
-		%client.DeathRaceData["TotalWinsByButton"]++;
+		%client.DR_TotalWins++;
+		%client.DR_TotalWinsByButton++;
 
 		%client.unlockAchievement("I am a winner!"); 
 		%client.unlockAchievement("Veteran Driver");
@@ -376,11 +377,9 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 {
 	if(!isObject(%mini = getMiniGameFromObject(%this)))
 		return;
-	cancel(%mini.deathRaceData["sch"]);
-	%time = %mini.deathRaceData["time"]--;
+	cancel(%mini.DR_sch);
+	%time = %mini.DR_time--;
 	%group = %this.getGroup();
-
-
 
 	if(%time == %time/4 && %time > 0) %mini.messageAll('MsgUploadEnd',"<font:Arial Bold_22:20>\c6The race begins in \c4" @ %time @ " seconds(s) \c6!");
 	if(%time == 3)
@@ -424,7 +423,7 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 
 		//%mini.checkLastManStanding();
 		%mini.messageAll(%tag,"<font:Arial Black:22>\c5The race has started!");
-		%mini.DeathRaceData["StartTime"] = $Sim::Time;
+		%mini.DR_StartTime = $Sim::Time;
 		%mini.isStartingDR = 0;
 
 		%c = MissionCleanUp.getCount();
@@ -445,14 +444,33 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 
 		%group.DR_EnableVehicles();
 
-		for(%i = 0; %i < %mini.numMembers; %i++)
-		{
-			if(isObject(%player = %mini.member[%i].player) && vectorDist(%player.getPosition(), %player.DR_SpawnPosition) < 5)
-				%player.kill();
-		}
-
 		%done = 1;
+
+		%count = %mini.numMembers;
+		for(%i = 0; %i < %count; %i++)
+		{
+			%currClient = %mini.member[%i];
+			if(isObject(%currClient))
+			{
+				%currClient.DR_hud.set($Hud::Time,"<just:right>\n");
+				if(isObject(%player = %currClient.player) && vectorDist(%player.getPosition(), %player.DR_SpawnPosition) < 5)
+					%player.kill();
+			}
+		}
 	}
+	else
+	{
+		%count = %mini.numMembers;
+		for(%i = 0; %i < %count; %i++)
+		{
+			%currClient = %mini.member[%i];
+			if(isObject(%currClient))
+			{
+				%currClient.DR_hud.set($Hud::Time,"<just:right>\c6Starting in " @ getTimeString(mCeil(%mini.deathRaceMaxTime - ((getSimTime() - %mini.lastDeathRaceReset) / 1000)) @ "\n"));
+			}
+		}
+	}
+	
 
 	%countBrick["Green"] = %group.NTObjectCount["_StartLight1"];
 	for(%gg=0;%gg<%countBrick["Green"];%gg++)
@@ -476,46 +494,46 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 	}
 
 	if(!%done)
-		%mini.deathRaceData["sch"] = %this.schedule(1000, DeathRaceLoop, %client);
+		%mini.DR_sch = %this.schedule(1000, DeathRaceLoop, %client);
 }
 
 function fxDTSBrick::ResetDeathRace(%this,%client)
 {
 	if(!isObject(%mini = getMiniGameFromObject(%this)))
 		return;
-	cancel(%mini.deathRaceData["sch"]);
+	cancel(%mini.DR_sch);
 	setVehicleSpeed($Pref::Server::DeathRace_Vehicle, 0);
 
 	//Minigame specials
 	//serverCmdTimeScale(publicClient,1);
-	cancel(%mini.DeathRaceData["RandomVehicleScaleLoopSch"]);
+	cancel(%mini.DR_RandomVehicleScaleLoopSch);
 	setTimescale(1);
 	%mini.avoidVehicleDeathCheck = 0;
-	%mini.DeathRaceData["EOC"] = 0;
-	%mini.deathRaceData["doubleHealth"] = 0;
-	%mini.deathRaceData["crazyspeed"] = 0;
-	%mini.deathRaceData["timescale2"] = 0;
-	%mini.DeathRaceData["StartTime"] = 0;
-	%mini.DeathRaceData["RandomVehicleScale"] = 0;
-	%mini.DeathRaceData["RandomVehicleScaleLoop"] = 0;
+	%mini.DR_EOC = 0;
+	%mini.DR_doubleHealth = 0;
+	%mini.DR_crazyspeed = 0;
+	%mini.DR_timescale2 = 0;
+	%mini.DR_StartTime = 0;
+	%mini.DR_RandomVehicleScale = 0;
+	%mini.DR_RandomVehicleScaleLoop = 0;
 	%mini.noitems = 0;
 	%mini.tempPlayerData = 0;
 
-	if(%mini.DeathRaceData["SpecialBought"] != 0)
-		%mini.DR_SpecialBought = %mini.DeathRaceData["SpecialBought"];
+	if(%mini.DR_SpecialBought != 0)
+		%mini.DR_SpecialBought = %mini.DR_SpecialBought;
 	else
 		%mini.DR_SpecialBought = 0;
 
 	%mini.vehicleDamageMult = 0;
 	%mini.vehicleScale = 1;
 	%mini.playerScale = 1;
-	%mini.DeathRaceData["SpecialBought"] = 0;
+	%mini.DR_SpecialBought = 0;
 
 	%mini.DR_Vehicle = $Pref::Server::DeathRace_Vehicle;
 	if(!isObject(%mini.DR_Vehicle))
 		%mini.DR_Vehicle = "JeepVehicle";
 
-	%mini.deathRaceData["time"] = 0;
+	%mini.DR_time = 0;
 	%mini.cannotSuicide = false;
 
 	%group = %this.getGroup();

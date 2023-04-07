@@ -17,67 +17,68 @@ function MinigameSO::DR_Loop(%mini)
 
 	%curTime = $Sim::Time;
 
-	if(%mini.time > 0)
-	{
-		%time = (%mini.time * 60000 - (getSimTime() - %mini.lastResetTime)) / 1000;
+	// if(%mini.time > 0)
+	// {
+	// 	%time = (%mini.time * 60000 - (getSimTime() - %mini.lastResetTime)) / 1000;
 
-		%timeLeft = mCeil(%time);
-		if(%timeLeft > 0)
-		{
-			%timeString = getTimeString(%timeLeft);
+	// 	%timeLeft = mCeil(%time);
+	// 	if(%timeLeft > 0)
+	// 	{
+	// 		%timeString = getTimeString(%timeLeft);
 
-			if(%timeLeft <= 60)
-			{
-				if(%timeLeft == 60)
-				{
-					%mini.blinkTime = 1;
-					%mini.blinkTimeCol = "\c3";
-					%mini.blinkTimeSec = 1;
-				}
-				else if(%timeLeft % 2 == 0 && %timeLeft > 10 && %timeLeft <= 30)
-				{
-					%mini.blinkTime = 1;
-					%mini.blinkTimeCol = "\c0";
-					%mini.blinkTimeSec = 1;
-				}
-				else if(%timeLeft == 10)
-				{
-					%mini.blinkTime = 10;
-					%mini.blinkTimeCol = "\c0";
-					%mini.blinkTimeSec = 1;
-				}
-			}
+	// 		if(%timeLeft <= 60)
+	// 		{
+	// 			if(%timeLeft == 60)
+	// 			{
+	// 				%mini.blinkTime = 1;
+	// 				%mini.blinkTimeCol = "\c3";
+	// 				%mini.blinkTimeSec = 1;
+	// 			}
+	// 			else if(%timeLeft % 2 == 0 && %timeLeft > 10 && %timeLeft <= 30)
+	// 			{
+	// 				%mini.blinkTime = 1;
+	// 				%mini.blinkTimeCol = "\c0";
+	// 				%mini.blinkTimeSec = 1;
+	// 			}
+	// 			else if(%timeLeft == 10)
+	// 			{
+	// 				%mini.blinkTime = 10;
+	// 				%mini.blinkTimeCol = "\c0";
+	// 				%mini.blinkTimeSec = 1;
+	// 			}
+	// 		}
 
-			if(%timeLeft == 120 && %curTime - %mini.lastPlayTimeout > 3)
-			{
-				%mini.lastPlayTimeout = %curTime;
-				if(isFunction("MinigameSO", "playSound"))
-					%mini.playSound(TimeRunningOutSound);
-				else if(isFunction("MinigameSO", "play2D"))
-					%mini.play2D(TimeRunningOutSound);
-			}
+	// 		if(%timeLeft == 120 && %curTime - %mini.lastPlayTimeout > 3)
+	// 		{
+	// 			%mini.lastPlayTimeout = %curTime;
+	// 			if(isFunction("MinigameSO", "playSound"))
+	// 				%mini.playSound(TimeRunningOutSound);
+	// 			else if(isFunction("MinigameSO", "play2D"))
+	// 				%mini.play2D(TimeRunningOutSound);
+	// 		}
 			
-			if(%timeLeft % 60 == 0 && %timeLeft > 60)
-			{
-				%mini.blinkTime = 1;
-				%mini.blinkTimeCol = "\c4";
-				%mini.blinkTimeSec = 0.5;
-			}
+	// 		if(%timeLeft % 60 == 0 && %timeLeft > 60)
+	// 		{
+	// 			%mini.blinkTime = 1;
+	// 			%mini.blinkTimeCol = "\c4";
+	// 			%mini.blinkTimeSec = 0.5;
+	// 		}
 
-			%timeStr = "Time";
-			if(%mini.blinkTime > 0 && %curTime - %mini.lastBlinkTime <= %mini.blinkTimeSec)
-				%timeString = %mini.blinkTimeCol @ %timeString;
-			else if(%mini.blinkTime > 0 && %curTime - %mini.lastBlinkTime > %mini.blinkTimeSec)
-			{
-				%mini.blinkTime--;
-				%mini.lastBlinkTime = %curTime;
-				%mini.blinkTimeSecCool = %curTime;
-				if(%mini.blinkTime > 0)
-					%timeString = %mini.blinkTimeCol @ %timeString;
-			}
-		}
-	}
+	// 		%timeStr = "Time";
+	// 		if(%mini.blinkTime > 0 && %curTime - %mini.lastBlinkTime <= %mini.blinkTimeSec)
+	// 			%timeString = %mini.blinkTimeCol @ %timeString;
+	// 		else if(%mini.blinkTime > 0 && %curTime - %mini.lastBlinkTime > %mini.blinkTimeSec)
+	// 		{
+	// 			%mini.blinkTime--;
+	// 			%mini.lastBlinkTime = %curTime;
+	// 			%mini.blinkTimeSecCool = %curTime;
+	// 			if(%mini.blinkTime > 0)
+	// 				%timeString = %mini.blinkTimeCol @ %timeString;
+	// 		}
+	// 	}
+	// }
 
+	// some local vars
 	%isReset = isEventPending(%mini.resetSchedule);
 	%isCustom = %mini.isCustomMini;
 	%font = $Pref::Server::DRFont;
@@ -85,24 +86,30 @@ function MinigameSO::DR_Loop(%mini)
 	%members = %mini.numMembers;
 	%deathrace_lastReset = %mini.lastDeathRaceReset;
 	%deathrace_vehicleExplodeTime = $Pref::Server::VehicleLimitTimeDeath;
-	%deathrace_time = %mini.deathRaceDatatime;
+	%deathrace_time = mCeil(%mini.deathRaceMaxTime - ((getSimTime() - %mini.lastDeathRaceReset) / 1000));
 	%avoidCheck = %mini.avoidVehicleDeathCheck;
 
-	if(%deathrace_maxtime > 0 && getSimTime() - %deathrace_lastReset < %deathrace_maxtime * 1000)
+	// starting time
+	if(%deathrace_time >= 0)
 	{
 		%isStarting = 1;
-		%timeStr = "Starting in";
-		%timeString = getTimeString(mCeil(%deathrace_maxtime - ((getSimTime() - %deathrace_lastReset) / 1000)));
 	}
 
+	// loop through everyone
 	for(%i = 0; %i < %members; %i++)
 	{
 		%client = %mini.member[%i];
-
 		if(isObject(%client))
 		{
 			if(isObject(%player = %client.player) && %player.getState() !$= "dead" && !%isReset)
 			{
+				%hud = "";
+				if(!%client.noHud)
+				{
+					%hud = %client.DR_hud;
+				}
+
+				// healing over time
 				%lastDamageTime = getSimTime() - %player.lastDamageTime;
 
 				if(%lastDamageTime > 7000 && %curTime - %player.lastMainTick_Health > 0.25 && %player.getHealth() < %player.getMaxHealth())
@@ -113,16 +120,20 @@ function MinigameSO::DR_Loop(%mini)
 					%player.addHealth(0.058 * %heal);
 				}
 
-				if(isObject(%vehicle = %player.getObjectMount()) && (%vehicleDmgLvl = %vehicle.getDamageLevel()) < (%vehicleMaxHp = %vehicle.getDatablock().maxDamage))
+				//mounted vehicle and vehicle is not destroyed
+				if(isObject(%vehicle = %player.getBaseMount()) && (%vehicleDmgLvl = %vehicle.getDamageLevel()) < (%vehicleMaxHp = %vehicle.getDatablock().maxDamage))
 				{
+					//return teamingHP to 0
 					if(!isEventPending(%vehicle.teamCheckSch) && %vehicle.teamingHP > 0)
 						%vehicle.teamingHP = mClampF(%vehicle.teamingHP - 0.2, 0, 100);
 
 					%vehicleData = %vehicle.getDatablock();
 
+					//return out of vehicle to max
 					if(%player.maxVehicleLimit > 0 && %player.vehicleLimitTime < %player.maxVehicleLimit)
 						%player.vehicleLimitTime += 0.01;
-
+					
+					//get the song
 					if(isObject(%handler = %vehicle.stereoHandler))
 					{
 						if(isObject(%audioEmitter = %handler.audioEmitter) && isObject(%vehicleSong = %audioEmitter.profile))
@@ -137,25 +148,23 @@ function MinigameSO::DR_Loop(%mini)
 					else
 						%vehicleSong = "NONE";
 
-					%vehiclePrintSong = "\c6Vehicle song: \c4" @ %vehicleSong;
-					%vehiclePrintHealth = "\c6Vehicle: \c3" @ mCeil((%vehicleMaxHp - %vehicleDmgLvl) / %vehicleMaxHp * 100) @ "\c6%";
+					%client.DR_hud.set($Hud::VehicleSong,"<just:Right>\c6Vehicle song: \c4" @ %vehicleSong @ "\n");
+					%client.DR_hud.set($Hud::VehicleHP,"<just:Left>\c6Vehicle: \c3" @ mCeil((%vehicleMaxHp - %vehicleDmgLvl) / %vehicleMaxHp * 100) @ "\c6%");
 
-					%mountCount = 0;
-					%mountPoints = %vehicleData.numMountPoints;
-					for(%j = 0; %j < %mountPoints; %j++)
+					%mountCount = %vehicle.getMountedObjectCount();
+					for(%j = 0; %j < %mountCount; %j++)
 					{
-						if(isObject(%vehiclePassenger[%i, %j] = %vehicle.getMountNodeObject(%j)))
-						{
-							%mountCount++;
-						}
+						%vehiclePassenger[%i, %j] = %vehicle.getMountedObject(%j);
 					}
 
+					//tick limitted and is the driver or next person
 					if(%curTime - %vehicle.lastDeathTick >= 1 && (isObject(%victim = %vehiclePassenger[%i, 0]) || isObject(%victim = %vehicle.getMountedObject(0))))
 					{
 						%vehicle.lastDeathTick = %curTime;
 						%victim_vehicleTimeDeath = mFloor(%victim.vehicleLimitTimeDeath[%vehicle]);
 						%victim_lastMainTick = %victim.lastMainTick_Vehicle;
 
+						// afk vehicle check
 						if(VectorLen(%vehicle.getVelocity()) < 4 && %mountCount > 0 && %deathrace_time <= 0 && !%client.ignoreVehicleAFK)
 						{
 							if(%deathrace_vehicleExplodeTime - %victim_vehicleTimeDeath > 0)
@@ -176,7 +185,8 @@ function MinigameSO::DR_Loop(%mini)
 								%victim.vehicleLimitTimeDeath[%vehicle] += 1;
 							}
 						}
-						else if(%victim.vehicleLimitTimeDeath[%vehicle] > 0 && %mountCount > 0 && %deathrace_time <= 0)
+						// refresh afk timer and remove the shapename
+						else if(%victim.vehicleLimitTimeDeath[%vehicle] > 0 && %mountCount > 0 && %deathrace_time < 0)
 						{
 							%vehicle.schedule(1, setShapeName, "");
 							if(%curTime - %victim_lastMainTick >= 1)
@@ -186,16 +196,20 @@ function MinigameSO::DR_Loop(%mini)
 						}
 					}
 				}
+				//check if out of vehicle timer is disabled
 				else if(!%avoidCheck)
 				{
+					//if the player has a max limit and tick limited and round not started
 					if(%player.maxVehicleLimit > 0 && %curTime - %player.lastMainTick_Vehicle > 0.5 && %deathrace_time <= 0)
 					{
+						//return the timer to max
 						if(%curTime - %player.lastMainTick_Vehicle > 1)
 						{
 							%player.lastMainTick_Vehicle = %curTime;
 							%player.vehicleLimitTime -= 1;
 						}
 
+						//timer is below 0 kill player
 						if(%player.vehicleLimitTime < 0)
 						{
 							%player.addHealth(-12);
@@ -207,130 +221,33 @@ function MinigameSO::DR_Loop(%mini)
 						%msg1 = "<just:center><font:" @ %font @ ":22>\c6You need to get back in your vehicle!\n\c6Time: \c3" @ getTimeString(mCeil(%vehicleLimitTime)) @ "";
 					else if(%vehicleLimitTime <= 0)
 						%msg1 = "<just:center><font:" @ %font @ ":22>\c6You need to get back in your vehicle!";
+					
+					%client.bottomPrint(%msg1, 2, 1);
+
+					%client.DR_hud.set($Hud::VehicleSong,"");
+					%client.DR_hud.set($Hud::VehicleHP,"");
 				}
 
-				%hpStr = "\c6Health: \c3" @ mCeil(%player.getHealth() / %player.getMaxHealth() * 100) @ "\c6%";
-				if(%timeString !$= "")
-				{
-					%mPrint = "<just:left>" @ %hpStr @ "<just:right>\c6" @ %timeStr @ ": " @ %timeString @ "  ";
-				}
-				else
-				{
-					%mPrint = "<just:left>" @ %hpStr;
-				}
-
+				%client.DR_hud.set($Hud::HP,"<just:left>\c6Health: \c3" @ mCeil(%player.getHealth() / %player.getMaxHealth() * 100) @ "\c6%");
+				%client.DR_hud.set($Hud::Score,"<just:left>\c6Score: \c3" @ %client.score);
+			}
+			//get hud for observers
+			else if(!%client.noHud && isObject(%player = %client.spyObj) && isObject(%spyClient = %player.client) && isObject(%minigame = %spyClient.minigame) && !%isReset) // Must be spying on someone
+			{
+				%hud = %spyClient.DR_hud;
+			}
+			//print hud
+			if(%hud)
+			{
 				if(%isStarting)
 				{
-					if(isObject(%vehicle))
-					{
-						%msg1 = "<font:" @ %font @ ":20>" @ %mPrint @ "\n<just:left>" @ %vehiclePrintHealth @ "<just:right>" @ %vehiclePrintSong @ "\n<just:left>\c6Score: \c3" @ %client.score;
-					}
-					else
-					{
-						%msg1 = "<font:" @ %font @ ":20>" @ %mPrint @ "\n<just:left>\c6Score: \c3" @ %client.score;
-					}
+					%client.bottomPrint(%hud.get(), 2, 1);
 				}
 				else
 				{
-					if(isObject(%vehicle))
-					{
-						%msg0 = "<font:" @ %font @ ":20>" @ %mPrint @ "\n<just:left>" @ %vehiclePrintHealth @ "<just:right>" @ %vehiclePrintSong @ "\n<just:left>\c6Score: \c3" @ %client.score;
-					}
-					else
-					{
-						%msg0 = "<font:" @ %font @ ":20>" @ %mPrint @ "\n<just:left>\c6Score: \c3" @ %client.score;
-					}
+					%client.centerPrint(%hud.get(), 2);
 				}
 			}
-			else if(isObject(%player = %client.spyObj) && isObject(%spyClient = %player.client) && isObject(%minigame = %spyClient.minigame) && !%isReset) // Must be spying on someone
-			{
-				if(isObject(%vehicle = %player.getObjectMount()) && (%vehicleDmgLvl = %vehicle.getDamageLevel()) < (%vehicleMaxHp = %vehicle.getDatablock().maxDamage))
-				{
-					%vehicleData = %vehicle.getDatablock();
-
-					if(isObject(%handler = %vehicle.stereoHandler))
-					{
-						if(isObject(%audioEmitter = %handler.audioEmitter) && isObject(%vehicleSong = %audioEmitter.profile))
-						{
-							%vehicleSong = %vehicleSong.uiName;
-						}
-						else
-						{
-							%vehicleSong = "NONE";
-						}
-					}
-					else
-						%vehicleSong = "NONE";
-
-					%vehiclePrintSong = "\c6Vehicle song: \c4" @ %vehicleSong;
-					%vehiclePrintHealth = "\c6Vehicle: \c3" @ mCeil((%vehicleMaxHp - %vehicleDmgLvl) / %vehicleMaxHp * 100) @ "\c6%";
-				}
-
-				%hpStr = "\c6Health: \c3" @ mCeil(%player.getHealth() / %player.getMaxHealth() * 100) @ "\c6%";
-				if(%timeString !$= "")
-				{
-					%mPrint = "<just:left>" @ %hpStr @ "<just:right>\c6" @ %timeStr @ ": " @ %timeString @ "  ";
-				}
-				else
-				{
-					%mPrint = "<just:left>" @ %hpStr;
-				}
-
-				if(%isStarting)
-				{
-					if(isObject(%vehicle))
-					{
-						%msg1 = "<font:" @ %font @ ":20>" @ %mPrint @ "\n<just:left>" @ %vehiclePrintHealth @ "<just:right>" @ %vehiclePrintSong @ "\n<just:left>\c6Score: \c3" @ %spyClient.score;
-					}
-					else
-					{
-						%msg1 = "<font:" @ %font @ ":20>" @ %mPrint @ "\n<just:left>\c6Score: \c3" @ %spyClient.score;
-					}
-				}
-				else
-				{
-					if(isObject(%vehicle))
-					{
-						%msg0 = "<font:" @ %font @ ":20>" @ %mPrint @ "\n<just:left>" @ %vehiclePrintHealth @ "<just:right>" @ %vehiclePrintSong @ "\n<just:left>\c6Score: \c3" @ %spyClient.score;
-					}
-					else
-					{
-						%msg0 = "<font:" @ %font @ ":20>" @ %mPrint @ "\n<just:left>\c6Score: \c3" @ %spyClient.score;
-					}
-				}
-			}
-
-			// if(%client.Shop_Client && %client.ShopPref_HUD == 1)
-			// {
-			// 	%client.DR_SendHUD(%isDead, %player.getHealth() SPC %player.getMaxHealth(), %vehicleDmgLvl SPC %vehicleMaxHp, %vehicleSong, %timeStr, %timeString, %client.score);
-			// }
-			// else
-			if(%client.DeathRaceDataHUD)
-			{
-				if(%client.lastDRPrint !$= %msg0 || %curTime - %client.lastDRPrint > 2)
-				{
-					%client.lastDRPrintTime = %curTime;
-					if(%client.lastDRPrint !$= "" || %msg0 !$= "")
-						%client.centerPrint(%msg0, %loopTime / 100 + 2);
-
-					%client.lastDRPrint = %msg0;
-				}
-
-				if(%client.lastDRBottomPrint !$= %msg1 || %curTime - %client.lastDRBottomPrintTime > 2)
-				{
-					%client.lastDRBottomPrintTime = %curTime;
-					if(%client.lastDRBottomPrint !$= "" || %msg1 !$= "")
-						%client.bottomPrint(%msg1, %loopTime / 100 + 2, 1);
-
-					%client.lastDRBottomPrint = %msg1;
-				}
-			}
-
-			%msg0 = "";
-			%msg1 = "";
-			%mPrint = "";
-			%vehiclePrintSong = "";
-			%vehiclePrintHealth = "";
 		}
 	}
 
@@ -338,26 +255,64 @@ function MinigameSO::DR_Loop(%mini)
 	%mini.DRSch = %mini.schedule(%loopTime, "DR_Loop");
 }
 
+$Hud::HP = 0;
+$Hud::Time = 1;
+$Hud::VehicleHP = 2;
+$Hud::VehicleSong = 3;
+$Hud::Score = 4;
+
 package DeathRace_MinigameLoop
 {
+	function GameConnection::onClientEnterGame(%c)
+	{
+		%c.DR_hud = Print_Create();
+		parent::onClientEnterGame(%c);
+	}
+
+	function GameConnection::onClientLeaveGame(%c)
+	{
+		%c.DR_hud.delete();
+		parent::onClientLeaveGame(%c);
+	}
+
 	function Armor::onMount(%this, %obj, %vehicle, %node)
 	{
 		Parent::onMount(%this, %obj, %vehicle, %node);
-		if(isObject(%client = %obj.client) && isObject(%mini = %client.minigame) && %mini.isCustomMini && !isEventPending(%vehicle.teamCheckSch) && isObject(%spawnBrick = %vehicle.spawnBrick))
+		%team = %obj.client.team;
+		if(isObject(%team) && isObject(%base) && !isObject(%base.client)  && %base.isEnabled())
 		{
-			%vehicle.setNodeColor("ALL", %client.chestColor);
-			%vehicle.DR_TeamCheck();
+			%base = %obj.getBaseMount();
+			%base.setNodeColor("ALL", %team.color);
+			%base.DR_TeamCheck();
 		}
 	}
 
 	function Armor::onUnMount(%this, %obj, %vehicle, %node)
 	{
 		Parent::onUnMount(%this, %obj, %vehicle, %node);
-		if(isEventPending(%vehicle.teamCheckSch))
+		%base = %obj.getBaseMount();
+		if(isObject(%base) && %base.isEnabled() && !isObject(%base.client))
 		{
-			cancel(%vehicle.teamCheckSch);
-			if(isObject(%spawnBrick = %vehicle.spawnBrick))
-				%vehicle.setColor(%spawnBrick.getColorID());
+			cancel(%base.blinkColorSch);
+			%count = %base.getMountedObjectCount();
+			for(%j = 0; %j < %count; %j++)
+			{
+				%mount = %base.getMountedObject(%j).getTopMount();
+				%team = %mount.team;
+				if(isObject(%team))
+				{
+					break;
+				}
+			}
+
+			if(isObject(%team))
+			{
+				%base.setNodeColor("ALL", %team.color);
+			}
+			else
+			{
+				cancel(%base.teamCheckSch);
+			}
 		}
 	}
 };
@@ -373,56 +328,34 @@ function WheeledVehicle::DR_TeamCheck(%vehicle)
 	%vehicleData = %vehicle.getDatablock();
 	%spawnBrick = %vehicle.spawnBrick;
 
-	%mountCount = 0;
-	%mountPoints = %vehicleData.numMountPoints;
-	for(%j = 0; %j < %mountPoints; %j++)
+	%count = %vehicle.getMountedObjectCount();
+	for(%j = 0; %j < %count; %j++)
 	{
-		if(isObject(%vehiclePassenger[%j] = %vehicle.getMountNodeObject(%j)))
+		%mount = %vehicle.getMountedObject(%j).getTopMount();
+		if(%mount.client.team)
 		{
-			%mountCount++;
+			%vehiclePassenger[%j] = %mount;
 		}
 	}
 
-	if(%mountCount <= 1 || !isObject(%client = %vehiclePassenger0.client))
+	if(%vehicle.client.team)
 	{
-		return;
+		%vehiclePassenger[%j] = %vehicle;
 	}
+	%count++;
 
 	%isTeaming = 0;
-	%teamingCount = 0;
-	if(isObject(%mini.Teams) && %mini.Teams.getCount() > 0 && isObject(%curTeam = %client.team))
+	%currTeam = %vehiclePassenger[0].client.team;
+	for(%j = 1; %j < %count; %j++)
 	{
-		for(%j = 0; %j < %mountCount; %j++)
+		if(%currTeam != %vehiclePassenger[%j].client.team)
 		{
-			if(isObject(%vehiclePassenger[%j]))
-				if(isObject(%vehicleObjClient = %vehiclePassenger[%j].client) && isObject(%vehicleObjMini = %vehicleObjClient.minigame))
-					if(isObject(%vehicleObjTeam = %vehicleObjClient.team))
-						if(%curTeam != %vehicleObjTeam && %vehiclePassenger[%j] != %vehiclePassenger0)
-						{
-							%isTeaming = 1;
-							%teamingObjTeam[%teamingCount] = %vehicleObjClient.team;
-							%teamingObj[%teamingCount] = %vehicleObjClient;
-							%teamingCount++;
-						}
+			%isTeaming = 1;
 		}
-	}
-	else
-	{
-		for(%j = 0; %j < %mountCount; %j++)
-		{
-			if(isObject(%vehiclePassenger[%j]))
-				if(isObject(%vehicleObjClient = %vehiclePassenger[%j].client) && isObject(%vehicleObjMini = %vehicleObjClient.minigame))
-					if(minigameCanDamage(%player, %vehicleObjClient) && %vehiclePassenger[%j] != %player)
-					{
-						%isTeaming = 1;
-						%teamingObj[%teamingCount] = %vehicleObjClient;
-						%teamingCount++;
-					}
-		}
-	}
+	}	
 
 	//Blink car if teaming, then destroy it after a certain time
-	if(%isTeaming && %mini.deathRaceData["time"] <= 0)
+	if(%isTeaming && %mini.DR_time <= 0)
 	{
 		//Blink the car
 		%vehicle.teamingHP = mClampF(%vehicle.teamingHP + 0.3, 0, 100);
@@ -437,23 +370,13 @@ function WheeledVehicle::DR_TeamCheck(%vehicle)
 		}
 		else
 		{
-			%oldColor = %spawnBrick.getColorID();
 			%blinkColor = "1 1 1 1";
-			// if(isObject(%curTeam))
-			// {
-			// 	%blinkColor = %curTeam.colorID;
-			// }
-			// else
-			// {
-			// 	%blinkColor = findClosestColor(%client.chestColor);
-			// }
-
 			if(!isEventPending(%vehicle.blinkColorSch) && getSimTime() - %vehicle.lastBlinkTime > %vehicle.blinkTime && isObject(%spawnBrick) && %blinkColor != %oldColor)
 			{
 				%vehicle.lastBlinkTime = getSimTime();
 				%vehicle.blinkTime = %blinkTime * 1.3;
 				%vehicle.setNodeColor("ALL", %blinkColor);
-				%vehicle.blinkColorSch = %spawnBrick.schedule(%blinkTime, "setColor", %spawnBrick.getColorID());
+				%vehicle.blinkColorSch = %vehicle.schedule(%blinkTime, "setNodeColor", "ALL", %currTeam.color);
 			}
 		}
 	}

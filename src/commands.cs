@@ -53,7 +53,7 @@ function serverCmdBackwardsDriving(%this)
 
 	%canBackwards = 1;
 	if(isObject(%mini = %this.minigame))
-		if(%mini.deathRaceData["time"] <= 0 && %mini.deathRaceData["time"] !$= "")
+		if(%mini.DR_time <= 0 && %mini.DR_time !$= "")
 			%canBackwards = 0;
 
 	if(%canBackwards)

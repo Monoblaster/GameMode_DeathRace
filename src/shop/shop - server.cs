@@ -1,7 +1,7 @@
 $Shop::Server::Version = 7.41;
 $Shop::Server::RequiredVersion = 7.3;
 
-$Shop::Link = "http://drive.google.com/open?id=0B7GxvN-ySa6Jdng5Rm0wQnBvZVE";
+$Shop::Link = "https://leopard.hosting.pecon.us/dl/tzkds/Client_DeathRace.zip";
 $Donate::Link = "https://www.nfoservers.com/donate.pl?force_recipient=1&recipient=cocoalove886@gmail.com";
 
 if(isPackage(Shop_Server))
@@ -17,7 +17,7 @@ package Shop_Server
 			if(%this.Shop_Client)
 			{
 				commandToClient(%this, 'DRShop', "SET_POINTS", %this.getScore());
-				if(%this.DeathRaceData["GUIPerRound"])
+				if(%this.DR_GUIPerRound)
 					schedule(500, 0, commandToClient, %this, 'DRShop', "OPEN");
 			}
 			else if(!$Server::DeathRaceTemp::BotheredClient[%this.getBLID()])
@@ -236,19 +236,19 @@ function serverCmdDRShop_Settings(%client, %option, %cmd1, %cmd2)
 	switch$(%option)
 	{
 		case "HUD":
-			%client.DeathRaceData["HUD"] = %cmd1;
+			%client.DR_HUD = %cmd1;
 
 		case "GUIHUD":
-			%client.DeathRaceData["GUIHUD"] = %cmd1;
+			%client.DR_GUIHUD = %cmd1;
 
 		case "GUIPerRound":
-			%client.DeathRaceData["GUIPerRound"] = %cmd1;
+			%client.DR_GUIPerRound = %cmd1;
 
 		case "MapGUI":
-			%client.DeathRaceData["MapGUI"] = %cmd1;
+			%client.DR_MapGUI = %cmd1;
 
 		case "HUDPassenger":
-			%client.DeathRaceData["HUDPassenger"] = %cmd1;
+			%client.DR_HUDPassenger = %cmd1;
 
 		default:
 			if(%option !$= "")
@@ -291,14 +291,14 @@ function serverCmdDRShop(%this, %option, %cmd1, %cmd2, %cmd3, %cmd4, %cmd5, %cmd
 			commandToClient(%this, 'DRShop', "SetProfile", "Playtime", %days, %hours, %minutes);
 			commandToClient(%this, 'DRShop', "SetProfile", "Rank", %rank);
 			commandToClient(%this, 'DRShop', "SetProfile", "Leaderboard", %leaderboard);
-			commandToClient(%this, 'DRShop', "SetProfile", "Kills", %this.DeathRaceData["totalKills"]);
-			commandToClient(%this, 'DRShop', "SetProfile", "Deaths", %this.DeathRaceData["totalDeaths"] | 0);
-			commandToClient(%this, 'DRShop', "SetProfile", "KDR", mFloatLength(%this.DeathRaceData["totalKills"] / %this.DeathRaceData["totalDeaths"], 2));
-			commandToClient(%this, 'DRShop', "SetProfile", "Points", %this.DeathRaceData["totalPoints"] | 0);
-			commandToClient(%this, 'DRShop', "SetProfile", "Items", %this.DeathRaceData["totalItemsBought"] | 0);
-			commandToClient(%this, 'DRShop', "SetProfile", "Rounds", %this.DeathRaceData["totalRounds"] | 0);
-			commandToClient(%this, 'DRShop', "SetProfile", "WinsByButton", %this.DeathRaceData["totalWinsByButton"] | 0);
-			commandToClient(%this, 'DRShop', "SetProfile", "Wins", %this.DeathRaceData["totalWins"] | 0);
+			commandToClient(%this, 'DRShop', "SetProfile", "Kills", %this.DR_totalKills);
+			commandToClient(%this, 'DRShop', "SetProfile", "Deaths", %this.DR_totalDeaths | 0);
+			commandToClient(%this, 'DRShop', "SetProfile", "KDR", mFloatLength(%this.DR_totalKills / %this.DR_totalDeaths, 2));
+			commandToClient(%this, 'DRShop', "SetProfile", "Points", %this.DR_totalPoints | 0);
+			commandToClient(%this, 'DRShop', "SetProfile", "Items", %this.DR_totalItemsBought | 0);
+			commandToClient(%this, 'DRShop', "SetProfile", "Rounds", %this.DR_totalRounds | 0);
+			commandToClient(%this, 'DRShop', "SetProfile", "WinsByButton", %this.DR_totalWinsByButton | 0);
+			commandToClient(%this, 'DRShop', "SetProfile", "Wins", %this.DR_totalWins | 0);
 
 		case "SAVE":
 			%this.Shop_Save();
@@ -606,7 +606,7 @@ function GameConnection::Shop_MiniSpecial(%this, %command)
 	if(!isObject(%mini = %this.minigame))
 		return;
 
-	if(%mini.DeathRaceData["SpecialBought"] != 0)
+	if(%mini.DR_SpecialBought != 0)
 	{
 		%this.chatMessage("\c6Sorry! Minigame special is already bought for next round.");
 		return;
@@ -623,25 +623,25 @@ function GameConnection::Shop_MiniSpecial(%this, %command)
 		case "CrazySpeed":
 			%this.chatMessage("\c6You have bought crazy speed for next round!");
 			%mini.messageAll('', '\c3%1 \c6has bought a special for next round: \c4Crazy speed', %this.getPlayerName());
-			%mini.DeathRaceData["SpecialBought"] = 1;
-			%this.incScore(-mAbs(%this.TempDeathRaceData["Shop"]));
-			%this.TempDeathRaceData["Shop"] = 0;
+			%mini.DR_SpecialBought = 1;
+			%this.incScore(-mAbs(%this.TempDR_Shop));
+			%this.TempDR_Shop = 0;
 			%mini.lastSpecialBought = $Sim::Time;
 
 		case "VehicleScale":
 			%this.chatMessage("\c6You have bought bigger vehicles for next round!");
 			%mini.messageAll('', '\c3%1 \c6has bought a special for next round: \c4Bigger vehicles', %this.getPlayerName());
-			%mini.DeathRaceData["SpecialBought"] = 3;
-			%this.incScore(-mAbs(%this.TempDeathRaceData["Shop"]));
-			%this.TempDeathRaceData["Shop"] = 0;
+			%mini.DR_SpecialBought = 3;
+			%this.incScore(-mAbs(%this.TempDR_Shop));
+			%this.TempDR_Shop = 0;
 			%mini.lastSpecialBought = $Sim::Time;
 
 		case "Horse":
 			%this.chatMessage("\c6You have bought horses for next round!");
 			%mini.messageAll('', '\c3%1 \c6has bought a special for next round: \c4Horses', %this.getPlayerName());
-			%mini.DeathRaceData["SpecialBought"] = 11;
-			%this.incScore(-mAbs(%this.TempDeathRaceData["Shop"]));
-			%this.TempDeathRaceData["Shop"] = 0;
+			%mini.DR_SpecialBought = 11;
+			%this.incScore(-mAbs(%this.TempDR_Shop));
+			%this.TempDR_Shop = 0;
 			%mini.lastSpecialBought = $Sim::Time;
 
 		default:
@@ -666,7 +666,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
 	if(!isObject(%brick = %vehicle.spawnBrick))
 		return;
 
-	if(isObject(%mini = %this.minigame) && %mini.deathRaceData["time"] <= 0 && !%this.bypassShop)
+	if(isObject(%mini = %this.minigame) && %mini.DR_time <= 0 && !%this.bypassShop)
 		return;
 
 	switch$(%command)
@@ -681,7 +681,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
  				%newVehicle.mountObject(%player, 0);
  				if(isObject(%mini))
  				{
-	 				if(%mini.DeathRaceData["RandomVehicleScale"])
+	 				if(%mini.DR_RandomVehicleScale)
 	 					%newVehicle.schedule(100, setScale, getRandomF(0.2, 1.8) SPC getRandomF(0.2, 1.8) SPC getRandomF(1, 1.75));
 	 				else
 						%newVehicle.schedule(100, setScale, vectorScale("1 1 1", %mini.vehicleScale));
@@ -689,7 +689,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
  			}
 
  			if(isObject(%mini))
- 				%brick.schedule(50, setVehiclePowered, %mini.deathRaceData["time"] <= 0, %this);
+ 				%brick.schedule(50, setVehiclePowered, %mini.DR_time <= 0, %this);
                  	
                 case "Euro Turbo":
 			if($Pref::Server::DeathRace_AnnounceVehiclePurchase)
@@ -701,7 +701,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
  				%newVehicle.mountObject(%player, 0);
  				if(isObject(%mini))
  				{
-	 				if(%mini.DeathRaceData["RandomVehicleScale"])
+	 				if(%mini.DR_RandomVehicleScale)
 	 					%newVehicle.schedule(100, setScale, getRandomF(0.2, 1.8) SPC getRandomF(0.2, 1.8) SPC getRandomF(1, 1.75));
 	 				else
 						%newVehicle.schedule(100, setScale, vectorScale("1 1 1", %mini.vehicleScale));
@@ -709,7 +709,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
  			}
 
  			if(isObject(%mini))
- 				%brick.schedule(50, setVehiclePowered, %mini.deathRaceData["time"] <= 0, %this);
+ 				%brick.schedule(50, setVehiclePowered, %mini.DR_time <= 0, %this);
                   
 
  		case "Post-Apoc Fordor":
@@ -722,7 +722,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
  				%newVehicle.mountObject(%player, 0);
  				if(isObject(%mini))
  				{
-	 				if(%mini.DeathRaceData["RandomVehicleScale"])
+	 				if(%mini.DR_RandomVehicleScale)
 	 					%newVehicle.schedule(100, setScale, getRandomF(0.2, 1.8) SPC getRandomF(0.2, 1.8) SPC getRandomF(1, 1.75));
 	 				else
 						%newVehicle.schedule(100, setScale, vectorScale("1 1 1", %mini.vehicleScale));
@@ -730,7 +730,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
  			}
 
  			if(isObject(%mini = %this.minigame))
- 				%brick.schedule(50, setVehiclePowered, %mini.deathRaceData["time"] <= 0, %this);
+ 				%brick.schedule(50, setVehiclePowered, %mini.DR_time <= 0, %this);
 
  		case "Tank":
  			if($Pref::Server::DeathRace_AnnounceVehiclePurchase)
@@ -742,7 +742,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
  				%newVehicle.mountObject(%player, 0);
  				if(isObject(%mini))
  				{
-	 				if(%mini.DeathRaceData["RandomVehicleScale"])
+	 				if(%mini.DR_RandomVehicleScale)
 	 					%newVehicle.schedule(100, setScale, getRandomF(0.2, 1.8) SPC getRandomF(0.2, 1.8) SPC getRandomF(1, 1.75));
 	 				else
 						%newVehicle.schedule(100, setScale, vectorScale("1 1 1", %mini.vehicleScale));
@@ -750,7 +750,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
  			}
 
  			if(isObject(%mini = %this.minigame))
- 				%brick.schedule(50, setVehiclePowered, %mini.deathRaceData["time"] <= 0, %this);
+ 				%brick.schedule(50, setVehiclePowered, %mini.DR_time <= 0, %this);
 
  		case "Jeep":
  			if($Pref::Server::DeathRace_AnnounceVehiclePurchase)
@@ -762,7 +762,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
  				%newVehicle.mountObject(%player, 0);
  				if(isObject(%mini))
  				{
-	 				if(%mini.DeathRaceData["RandomVehicleScale"])
+	 				if(%mini.DR_RandomVehicleScale)
 	 					%newVehicle.schedule(100, setScale, getRandomF(0.2, 1.8) SPC getRandomF(0.2, 1.8) SPC getRandomF(1, 1.75));
 	 				else
 						%newVehicle.schedule(100, setScale, vectorScale("1 1 1", %mini.vehicleScale));
@@ -770,7 +770,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
  			}
                         
                         if(isObject(%mini = %this.minigame))
- 				%brick.schedule(50, setVehiclePowered, %mini.deathRaceData["time"] <= 0, %this);
+ 				%brick.schedule(50, setVehiclePowered, %mini.DR_time <= 0, %this);
 
  		case "Phantom":
  			if($Pref::Server::DeathRace_AnnounceVehiclePurchase)
@@ -782,7 +782,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
  				%newVehicle.mountObject(%player, 0);
  				if(isObject(%mini))
  				{
-	 				if(%mini.DeathRaceData["RandomVehicleScale"])
+	 				if(%mini.DR_RandomVehicleScale)
 	 					%newVehicle.schedule(100, setScale, getRandomF(0.2, 1.8) SPC getRandomF(0.2, 1.8) SPC getRandomF(1, 1.75));
 	 				else
 						%newVehicle.schedule(100, setScale, vectorScale("1 1 1", %mini.vehicleScale));
@@ -790,7 +790,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
  			}
 
  			if(isObject(%mini))
- 				%brick.schedule(50, setVehiclePowered, %mini.deathRaceData["time"] <= 0, %this);
+ 				%brick.schedule(50, setVehiclePowered, %mini.DR_time <= 0, %this);
 
  		case "Oldtimer":
  			if($Pref::Server::DeathRace_AnnounceVehiclePurchase)
@@ -802,7 +802,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
  				%newVehicle.mountObject(%player, 0);
  				if(isObject(%mini))
  				{
-	 				if(%mini.DeathRaceData["RandomVehicleScale"])
+	 				if(%mini.DR_RandomVehicleScale)
 	 					%newVehicle.schedule(100, setScale, getRandomF(0.2, 1.8) SPC getRandomF(0.2, 1.8) SPC getRandomF(1, 1.75));
 	 				else
 						%newVehicle.schedule(100, setScale, vectorScale("1 1 1", %mini.vehicleScale));
@@ -811,7 +811,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
                         
                         
  			if(isObject(%mini))
- 				%brick.schedule(50, setVehiclePowered, %mini.deathRaceData["time"] <= 0, %this);
+ 				%brick.schedule(50, setVehiclePowered, %mini.DR_time <= 0, %this);
 
  		case "Skateboard":
  			if($Pref::Server::DeathRace_AnnounceVehiclePurchase)
@@ -823,7 +823,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
  				%newVehicle.mountObject(%player, 0);
  				if(isObject(%mini))
  				{
-	 				if(%mini.DeathRaceData["RandomVehicleScale"])
+	 				if(%mini.DR_RandomVehicleScale)
 	 					%newVehicle.schedule(100, setScale, getRandomF(0.2, 1.8) SPC getRandomF(0.2, 1.8) SPC getRandomF(1, 1.75));
 	 				else
 						%newVehicle.schedule(100, setScale, vectorScale("1 1 1", %mini.vehicleScale));
@@ -831,7 +831,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
  			}
 
  			if(isObject(%mini = %this.minigame))
- 				%brick.schedule(50, setVehiclePowered, %mini.deathRaceData["time"] <= 0, %this);
+ 				%brick.schedule(50, setVehiclePowered, %mini.DR_time <= 0, %this);
 
  		case "Invisible":
  			if($Pref::Server::DeathRace_AnnounceVehiclePurchase)
@@ -849,10 +849,10 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
 		if(isObject(%vehicle = %brick.vehicle) && %vehicle.getClassName() !$= "AIPlayer" && (%speed = %vehicle.getDatablock().maxWheelSpeed) > 20)
 			%vehicle.getDatablock().maxWheelSpeed = 30;
 
-		%this.incScore(-mAbs(%this.TempDeathRaceData["Shop"]));
+		%this.incScore(-mAbs(%this.TempDR_Shop));
 	}
 
-	%this.TempDeathRaceData["Shop"] = 0;
+	%this.TempDR_Shop = 0;
 }
 
 function GameConnection::Shop_Bots(%this, %command)
@@ -872,7 +872,7 @@ function GameConnection::Shop_Bots(%this, %command)
 	if(!isObject(%brick = %vehicle.spawnBrick))
 		return;
 
-	if(isObject(%mini = %this.minigame) && %mini.deathRaceData["time"] <= 0 && !%this.bypassShop)
+	if(isObject(%mini = %this.minigame) && %mini.DR_time <= 0 && !%this.bypassShop)
 		return;
 
 	switch$(%command)
@@ -889,7 +889,7 @@ function GameConnection::Shop_Bots(%this, %command)
  			}
 
  			if(isObject(%mini = %this.minigame))
- 				%brick.schedule(50, setVehiclePowered, %mini.deathRaceData["time"] <= 0, %this);
+ 				%brick.schedule(50, setVehiclePowered, %mini.DR_time <= 0, %this);
 
 		default:
 			%error = 1;
@@ -897,9 +897,9 @@ function GameConnection::Shop_Bots(%this, %command)
 	}
 
 	if(!%error)
-		%this.incScore(-mAbs(%this.TempDeathRaceData["Shop"]));
+		%this.incScore(-mAbs(%this.TempDR_Shop));
 
-	%this.TempDeathRaceData["Shop"] = 0;
+	%this.TempDR_Shop = 0;
 }
 
 function GameConnection::Shop_TrailUpgrades(%client, %command)
@@ -916,11 +916,11 @@ function GameConnection::Shop_TrailUpgrades(%client, %command)
 		{
 			//%client.chatMessage("\c6Trail already purchased: \c3" @ %command @ "\c6. Say /Trail for more information!");
 			serverCmdTrail(%client, %command);
-			%client.TempDeathRaceData["Shop"] = 0;
+			%client.TempDR_Shop = 0;
 			return;
 		}
 
-		%client.incScore(-mAbs(%client.TempDeathRaceData["Shop"]));
+		%client.incScore(-mAbs(%client.TempDR_Shop));
 		$BoughtItem_[%client.getBLID(), getSafeVariableName("Trail - " @ %command)] = 1;
 		commandToClient(%client, 'DRShop', "SET_BOUGHT", "Trail - " @ %command, 1);
 		%client.chatMessage("\c6Trail purchased: \c3" @ %command @ "\c6. Say /Trail for more information!");
@@ -930,7 +930,7 @@ function GameConnection::Shop_TrailUpgrades(%client, %command)
 		%client.chatMessage("\c6Invalid trail to buy!");
 	}	
 
-	%client.TempDeathRaceData["Shop"] = 0;
+	%client.TempDR_Shop = 0;
 }
 
 function GameConnection::Shop_PlayerUpgrades(%this, %command)
@@ -953,9 +953,9 @@ function GameConnection::Shop_PlayerUpgrades(%this, %command)
 	}
 
 	if(!%error)
-		%this.incScore(-mAbs(%this.TempDeathRaceData["Shop"]));
+		%this.incScore(-mAbs(%this.TempDR_Shop));
 
-	%this.TempDeathRaceData["Shop"] = 0;
+	%this.TempDR_Shop = 0;
 }
 
 function Player::Shop_Load(%this, %bypass)
@@ -967,7 +967,7 @@ function Player::Shop_Load(%this, %bypass)
 	if(isObject(%client.Shop_LoadFile)) {%client.Shop_LoadFile.close(); %client.Shop_LoadFile.delete();}
 
 	if(isObject(%mini = getMiniGameFromObject(%this)) && !%bypass)
-		if(%mini.deathRaceData["time"] <= 0)
+		if(%mini.DR_time <= 0)
 		{
 			%client.chatMessage("\c6Cannot load weapons. Race already started :D");
 			return;
@@ -1108,7 +1108,7 @@ function GameConnection::RequestItem(%this,%item,%time)
 			}
 
 			if(!%this.bypassShop)
-				%this.TempDeathRaceData["Shop"] = %groupObj.cost;
+				%this.TempDR_Shop = %groupObj.cost;
 
 			%this.call(%groupObj.func, %groupObj.func_call);
 			return 1;

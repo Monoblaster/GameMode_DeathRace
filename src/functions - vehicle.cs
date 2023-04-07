@@ -50,7 +50,7 @@ package DeathRace_Vehicle
 	{
 		if(isObject(%driver = %obj.getMountNodeObject(0)))
 		{
-			if(isObject(%minigame = getMiniGameFromObject(%driver)) && %minigame.DeathRaceData["EOC"] && $Sim::Time - %minigame.DeathRaceData["StartTime"] > 5 && %minigame.DeathRaceData["StartTime"] > 0)
+			if(isObject(%minigame = getMiniGameFromObject(%driver)) && %minigame.DR_EOC && $Sim::Time - %minigame.DR_StartTime > 5 && %minigame.DR_StartTime > 0)
 			{
 				if($Sim::Time - %col.lastInvincibility > 0.5)
 				{

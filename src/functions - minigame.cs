@@ -50,7 +50,7 @@ package DeathRace_Minigame
 	function MiniGameSO::removeMember(%this, %member)
 	{
 		%member.oldscore = %member.score;
-		%this.DeathRaceData["PlayTime"] += ($Sim::Time - %this.TotalPlayTime);
+		%this.DR_PlayTime += ($Sim::Time - %this.TotalPlayTime);
 		%this.TotalPlayTime = $Sim::Time;
 		Parent::removeMember(%this, %member);
 		%member.setscore(%member.oldscore);
@@ -62,7 +62,7 @@ package DeathRace_Minigame
 
 		if(isObject(%killerClient) && %killerClient.getClassName() $= "GameConnection" && %this != %killerClient)
 		{
-			%killerClient.DeathRaceData["totalKills"]++;
+			%killerClient.DR_totalKills++;
 			%killerClient.unlockAchievement("Unstoppable");
 			%killerClient.unlockAchievement("On the Kill");
 
@@ -70,7 +70,7 @@ package DeathRace_Minigame
 		}
 
 		if(%damageType != $DamageType::AFK)
-			%this.DeathRaceData["totalDeaths"]++;
+			%this.DR_totalDeaths++;
 	}
 
 	function SimObject::setNTObjectName(%obj, %name)
@@ -165,14 +165,14 @@ function MinigameSO::addNewItemToAll(%this,%item)
 
 function MinigameSO::DR_ScrambleVehicleScaleLoop(%this, %group)
 {
-	cancel(%this.DeathRaceData["RandomVehicleScaleLoopSch"]);
+	cancel(%this.DR_RandomVehicleScaleLoopSch);
 	if(!isObject(%group))
 		%group = nameToID("Brickgroup_888888");
 
 	if(!isObject(%group))
 		return;
 
-	if(!%this.DeathRaceData["RandomVehicleScaleLoop"])
+	if(!%this.DR_RandomVehicleScaleLoop)
 		return;
 
 	%countVe = %group.NTObjectCount["_car"];
@@ -181,7 +181,7 @@ function MinigameSO::DR_ScrambleVehicleScaleLoop(%this, %group)
 		%brick = %group.NTObject["_car",%b];
 		if(isObject(%vehicle = %brick.vehicle))
 		{
-			if(%this.DeathRaceData["RandomVehicleScale"])
+			if(%this.DR_RandomVehicleScale)
 				%vehicle.schedule(100, setScale, getRandomF(0.2, 1.8) SPC getRandomF(0.2, 1.8) SPC getRandomF(1, 1.75));
 			else
 				%vehicle.schedule(100, setScale, vectorScale("1 1 1", %this.vehicleScale));
@@ -194,14 +194,14 @@ function MinigameSO::DR_ScrambleVehicleScaleLoop(%this, %group)
 		%brickV = %group.NTObject["_admincar",%z];
 		if(isObject(%vehicle = %brick.vehicle))
 		{
-			if(%this.DeathRaceData["RandomVehicleScale"])
+			if(%this.DR_RandomVehicleScale)
 				%vehicle.schedule(100, setScale, getRandomF(0.2, 1.8) SPC getRandomF(0.2, 1.8) SPC getRandomF(1, 1.75));
 			else
 				%vehicle.schedule(100, setScale, vectorScale("1 1 1", %this.vehicleScale));
 		}
 	}
 
-	%this.DeathRaceData["RandomVehicleScaleLoopSch"] = %this.schedule(10000, "DR_ScrambleVehicleScaleLoop");
+	%this.DR_RandomVehicleScaleLoopSch = %this.schedule(10000, "DR_ScrambleVehicleScaleLoop");
 }
 
 ///////////////////////////////////////////////////

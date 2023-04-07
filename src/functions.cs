@@ -38,6 +38,30 @@ function findclosestcolor(%x)
 	return %bestid;
 }
 
+function ShapeBase::GetBaseMount(%obj)
+{
+	%newMount = %obj;
+	%lastMount = 0;
+	while(isObject(%newMount = %newMount.getObjectMount()))
+	{
+		%lastMount = %newMount;
+	}
+
+	return %lastMount;
+}
+
+function ShapeBase::GetTopMount(%obj)
+{
+	%newMount = %obj;
+	%lastMount = %obj;
+	while(isObject(%newMount = %newMount.getMountedObject(0)))
+	{
+		%lastMount = %newMount;
+	}
+
+	return %lastMount;
+}
+
 function SimObject::onCameraEnterOrbit(%obj, %camera)
 {
 	if(isObject(%client = %camera.getControllingClient()) && %client.getClassName() $= "GameConnection" && isObject(%obj.client))

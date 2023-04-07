@@ -24,11 +24,11 @@ function MinigameSO::DR_SetSpecial(%this, %special, %group)
 		case "1" or "CrazySpeed":
 			%msg = "Vehicles now have crazy speed!";
 			setVehicleSpeed($Pref::Server::DeathRace_Vehicle, getRandom(40, 60));
-			%this.deathRaceData["crazyspeed"] = 1;
+			%this.DR_crazyspeed = 1;
 
 		case "2" or "ExtraHealth":
 			%msg = "100+ more health!";
-			%this.deathRaceData["doubleHealth"] = 1;
+			%this.DR_doubleHealth = 1;
 
 		case "3" or "VehicleScale":
 			%rrr = getRandom(0, 1);
@@ -51,11 +51,11 @@ function MinigameSO::DR_SetSpecial(%this, %special, %group)
 			%msg = "Players have a " @ %this.playerScale @ "x scale! Good luck with that.";
 
 		case "5" or "ExplodeOnCollision":
-			%this.DeathRaceData["EOC"] = 1;
+			%this.DR_EOC = 1;
 			%msg = "Vehicles explode on impact! Remember, they do not explode until 5 seconds after the race started.";
 
 		case "6" or "RandomVehicleScale":
-			%this.DeathRaceData["RandomVehicleScale"] = 1;
+			%this.DR_RandomVehicleScale = 1;
 			%msg = "Scrambled vehicle scales!";
 
 		case "7" or "Tanks":
@@ -63,8 +63,8 @@ function MinigameSO::DR_SetSpecial(%this, %special, %group)
 			%msg = "TANKS! \c4These aren't the default ones..";
 
 		case "8" or "RandomVehicleScaleLoop":
-			%this.DeathRaceData["RandomVehicleScale"] = 1;
-			%this.DeathRaceData["RandomVehicleScaleLoop"] = 1;
+			%this.DR_RandomVehicleScale = 1;
+			%this.DR_RandomVehicleScaleLoop = 1;
 			%this.DR_ScrambleVehicleScaleLoop();
 			%msg = "Scrambled vehicle scales! Vehicle scales will randomize every 10 seconds.";
 
@@ -103,7 +103,7 @@ function MinigameSO::DR_SetSpecial(%this, %special, %group)
 		%brick.setVehicle(nameToID(%this.DR_Vehicle));
 		if(isObject(%vehicle = %brick.vehicle))
 		{
-			if(%this.DeathRaceData["RandomVehicleScale"])
+			if(%this.DR_RandomVehicleScale)
 				%vehicle.schedule(100, "setScale", getRandomF(0.2, 1.8) SPC getRandomF(0.2, 1.8) SPC getRandomF(1, 1.75));
 			else
 				%vehicle.schedule(100, "setScale", vectorScale("1 1 1", %this.vehicleScale));
@@ -124,13 +124,13 @@ function MinigameSO::DR_SetSpecial(%this, %special, %group)
 		%brick.setVehicle(nameToID(%this.DR_Vehicle));
 		if(isObject(%vehicle = %brick.vehicle))
 		{
-			if(%this.DeathRaceData["RandomVehicleScale"])
+			if(%this.DR_RandomVehicleScale)
 				%vehicle.schedule(100, "setScale", getRandomF(0.2, 1.8) SPC getRandomF(0.2, 1.8) SPC getRandomF(1, 1.75));
 			else
 				%vehicle.schedule(100, "setScale", vectorScale("1 1 1", %this.vehicleScale));
 		}
 	}
 
-	%this.DeathRaceData["SpecialBought"] = 0;
+	%this.DR_SpecialBought = 0;
 	%this.DR_SpecialBought = 0;
 }

@@ -309,7 +309,7 @@ ADDON Weapon_TF2MedicPack
 ADDON Weapon_Throwing_Knife
 ADDON server_redeval
 ADDON Gamemode_DeathRace
-ADDON server_EasyExecute
+ADDON Script_EasyExecute
 
 MUSIC 007_In_Super_Mario
 MUSIC 8Bit_DnB
@@ -1112,4 +1112,4 @@ $Server::Quota::Misc 9999
 $Server::Quota::Item 1000
 $Server::Quota::Environment 5000
 
-$Server::WelcomeMessage Welcome to deathrace :)
+$Server::WelcomeMessage Welcome to deathrace :) discord: <a:https://discord.gg/VxN4yXE>VxN4yXE</a>

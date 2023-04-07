@@ -12,14 +12,14 @@ package DeathRace_Player
 
 	function GameConnection::incScore(%this,%score)
 	{
-		if(!%this.deathRaceData["pointFixOnce"] && %this.score > %this.deathRaceData["totalPoints"] && %this.score > 0)
+		if(!%this.DR_pointFixOnce && %this.score > %this.DR_totalPoints && %this.score > 0)
 		{
-			%this.deathRaceData["pointFixOnce"] = 1;
-			%this.deathRaceData["totalPoints"] = %this.score;
+			%this.DR_pointFixOnce = 1;
+			%this.DR_totalPoints = %this.score;
 		}
 
 		if(%score > 0)
-			%this.deathRaceData["totalPoints"] += %score;
+			%this.DR_totalPoints += %score;
 		
 		if(%this.getScore() < -5)
 		{
@@ -74,12 +74,12 @@ package DeathRace_Player
 		
 		if(isObject(%sourceClient))
 		{
-			%sourceClient.DeathRaceData["giveDamage"] += mClampF(%damage, 0, %data.maxDamage);
+			%sourceClient.DR_giveDamage += mClampF(%damage, 0, %data.maxDamage);
 		}
 
 		if(isObject(%client))
 		{
-			%client.DeathRaceData["takeDamage"] += mClampF(%damage, 0, %data.maxDamage);
+			%client.DR_takeDamage += mClampF(%damage, 0, %data.maxDamage);
 		}
 
 		return %r;
@@ -123,7 +123,7 @@ function GameConnection::resetDRKill(%this)
 
 function GameConnection::getTotalPlayTime(%this)
 {
-	return %this.DeathRaceData["PlayTime"] + ($Sim::Time - %this.TotalPlayTime);
+	return %this.DR_PlayTime + ($Sim::Time - %this.TotalPlayTime);
 }
 
 function GameConnection::DeathRace_Save(%this)
@@ -137,24 +137,24 @@ function GameConnection::DeathRace_Save(%this)
     %file.openForWrite(%path);
     
     %file.writeLine(%this.score TAB %this.getPlayerName());
-    %file.writeLine("takeDamage"		TAB %this.DeathRaceData["takeDamage"]			TAB "// How much damage was received");
-    %file.writeLine("giveDamage"		TAB %this.DeathRaceData["giveDamage"]			TAB "// How much damage was given");
-    %file.writeLine("totalKills"		TAB %this.DeathRaceData["totalKills"]			TAB "// How much damage was taken");
-    %file.writeLine("totalDeaths"		TAB %this.DeathRaceData["totalDeaths"]			TAB "// How many times they died");
-    %file.writeLine("totalWins"			TAB %this.DeathRaceData["totalWins"]			TAB "// How many wins they have");
-    %file.writeLine("totalWinsByButton"	TAB %this.DeathRaceData["totalWinsByButton"]	TAB "// How many wins they have by pressing button (counts as being alive with team too)");
-    %file.writeLine("totalRounds"		TAB %this.DeathRaceData["totalRounds"]			TAB "// How many rounds played");
-    %file.writeLine("totalPoints"		TAB %this.DeathRaceData["totalPoints"]			TAB "// How many points they have received, this counts into players 'cheating' outside of minigame");
-    %file.writeLine("totalItemsBought"	TAB %this.DeathRaceData["totalItemsBought"]		TAB "// How many items bought");
-    %file.writeLine("FirstWin"			TAB %this.DeathRaceData["FirstWin"]				TAB "// If they won at least one game");
+    %file.writeLine("takeDamage"		TAB %this.DR_takeDamage			TAB "// How much damage was received");
+    %file.writeLine("giveDamage"		TAB %this.DR_giveDamage			TAB "// How much damage was given");
+    %file.writeLine("totalKills"		TAB %this.DR_totalKills			TAB "// How much damage was taken");
+    %file.writeLine("totalDeaths"		TAB %this.DR_totalDeaths			TAB "// How many times they died");
+    %file.writeLine("totalWins"			TAB %this.DR_totalWins			TAB "// How many wins they have");
+    %file.writeLine("totalWinsByButton"	TAB %this.DR_totalWinsByButton	TAB "// How many wins they have by pressing button (counts as being alive with team too)");
+    %file.writeLine("totalRounds"		TAB %this.DR_totalRounds			TAB "// How many rounds played");
+    %file.writeLine("totalPoints"		TAB %this.DR_totalPoints			TAB "// How many points they have received, this counts into players 'cheating' outside of minigame");
+    %file.writeLine("totalItemsBought"	TAB %this.DR_totalItemsBought		TAB "// How many items bought");
+    %file.writeLine("FirstWin"			TAB %this.DR_FirstWin				TAB "// If they won at least one game");
     %file.writeLine("PlayTime"			TAB %this.getTotalPlayTime() 					TAB "// How much they have played");
-    %file.writeLine("pointFixOnce"		TAB %this.DeathraceData["pointFixOnce"] 		TAB "// Point fix");
+    %file.writeLine("pointFixOnce"		TAB %this.DR_pointFixOnce 		TAB "// Point fix");
 
-    %file.writeLine("HUD"				TAB %this.DeathRaceData["HUD"]					TAB "// Setting");
-    %file.writeLine("GUIHUD"			TAB %this.DeathRaceData["GUIHUD"]				TAB "// Setting");
-    %file.writeLine("GUIPerRound"		TAB %this.DeathRaceData["GUIPerRound"] 			TAB "// Setting");
-    %file.writeLine("MapGUI"			TAB %this.DeathRaceData["MapGUI"]				TAB "// Setting");
-    %file.writeLine("HUDPassenger"		TAB %this.DeathRaceData["HUDPassenger"] 		TAB "// Setting");
+    %file.writeLine("HUD"				TAB %this.DR_HUD					TAB "// Setting");
+    %file.writeLine("GUIHUD"			TAB %this.DR_GUIHUD				TAB "// Setting");
+    %file.writeLine("GUIPerRound"		TAB %this.DR_GUIPerRound 			TAB "// Setting");
+    %file.writeLine("MapGUI"			TAB %this.DR_MapGUI				TAB "// Setting");
+    %file.writeLine("HUDPassenger"		TAB %this.DR_HUDPassenger 		TAB "// Setting");
 
     // Map data
     for(%i = 1; %i <= $Server::MapSys_MapCount; %i++)
@@ -176,20 +176,20 @@ function GameConnection::DeathRace_Load(%this) {
 	if(isFile(%file = "config/server/Achievements/" @ %bl_id @ ".cs"))
 		exec(%file);
 
-	if(%this.deathRaceData["totalPoints"] $= "")
-		%this.deathRaceData["totalPoints"] = %this.score;
+	if(%this.DR_totalPoints $= "")
+		%this.DR_totalPoints = %this.score;
 
-	if(%this.deathRaceData["HUD"] $= "")
-		%this.deathRaceData["HUD"] = 1;
+	if(%this.DR_HUD $= "")
+		%this.DR_HUD = 1;
 
-	if(%this.deathRaceData["GUIHUD"] $= "")
-		%this.deathRaceData["GUIHUD"] = 1;
+	if(%this.DR_GUIHUD $= "")
+		%this.DR_GUIHUD = 1;
 
-	if(%this.deathRaceData["GUIPerRound"] $= "")
-		%this.deathRaceData["GUIPerRound"] = 1;
+	if(%this.DR_GUIPerRound $= "")
+		%this.DR_GUIPerRound = 1;
 
-	if(%this.deathRaceData["MapGUI"] $= "")
-		%this.deathRaceData["MapGUI"] = 1;
+	if(%this.DR_MapGUI $= "")
+		%this.DR_MapGUI = 1;
 
 	%path = $DeathRace::Profiles @ %this.getBLID() @ ".DeathRaceProfile";
 	if(!isFile(%path))
@@ -250,7 +250,7 @@ function GameConnection::DR_Spawn(%this)
 	%player.DR_SpawnPosition = %player.getPosition();
 	%this.spyObj = 0;
 
-	%this.DeathRaceData["PlayTime"] += ($Sim::Time - %this.TotalPlayTime);
+	%this.DR_PlayTime += ($Sim::Time - %this.TotalPlayTime);
 	%this.TotalPlayTime = $Sim::Time;
 	%this.unlockAchievement("Deathrace Marathon");
 	%this.unlockAchievement("Deathrace Addiction");
@@ -266,10 +266,10 @@ function GameConnection::DR_Spawn(%this)
 		if(%mini.tempPlayerData != 0 && isObject(%mini.tempPlayerData))
 			%player.changeDatablock(%mini.tempPlayerData);
 
-		if(%mini.deathRaceData["doubleHealth"])
+		if(%mini.DR_doubleHealth)
 			%player.addMaxHealth(100);
 
-		%player.setVehicleLimit($Pref::Server::VehicleLimitTime, %this.minigame.deathRaceData["time"] + 10);
+		%player.setVehicleLimit($Pref::Server::VehicleLimitTime, %this.minigame.DR_time + 10);
 	}
 }
 

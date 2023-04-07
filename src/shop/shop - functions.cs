@@ -165,11 +165,11 @@ function GameConnection::Shop_SendData(%this, %avoidReset)
 	commandToClient(%this, 'DRShop', "SetProfile", "Rank", %this.getLeaderboardRank());
 	commandToClient(%this, 'DRShop', "SetProfile", "Leaderboard", %this.getLeaderboardNumber());
 
-	commandToClient(%this, 'DRShop', "SetSetting", "HUD", %this.DeathRaceData["HUD"]);
-	commandToClient(%this, 'DRShop', "SetSetting", "GUIHUD", %this.DeathRaceData["GUIHUD"]);
-	commandToClient(%this, 'DRShop', "SetSetting", "GUIHUDPassenger", %this.DeathRaceData["HUDPassenger"]);
-	commandToClient(%this, 'DRShop', "SetSetting", "GUIRound", %this.DeathRaceData["GUIPerRound"]);
-	commandToClient(%this, 'DRShop', "SetSetting", "MapVoteGUI", %this.DeathRaceData["MapGUI"]);
+	commandToClient(%this, 'DRShop', "SetSetting", "HUD", %this.DR_HUD);
+	commandToClient(%this, 'DRShop', "SetSetting", "GUIHUD", %this.DR_GUIHUD);
+	commandToClient(%this, 'DRShop', "SetSetting", "GUIHUDPassenger", %this.DR_HUDPassenger);
+	commandToClient(%this, 'DRShop', "SetSetting", "GUIRound", %this.DR_GUIPerRound);
+	commandToClient(%this, 'DRShop', "SetSetting", "MapVoteGUI", %this.DR_MapGUI);
 	
 	%boughtItems = 0;					
 	for(%i = 0; %i < %group.getCount(); %i++)
@@ -200,8 +200,8 @@ function GameConnection::Shop_SendData(%this, %avoidReset)
 		}
 	}
 
-	//if(%this.DeathRaceData["totalItemsBought"] $= "")
-		%this.DeathRaceData["totalItemsBought"] = %boughtItems;
+	//if(%this.DR_totalItemsBought $= "")
+		%this.DR_totalItemsBought = %boughtItems;
 }
 
 function GameConnection::PingCheck(%this)

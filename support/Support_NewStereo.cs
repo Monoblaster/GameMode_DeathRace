@@ -62,16 +62,13 @@ function serverCmdRandomStereo(%client)
 	if(!isObject(%player = %client.player))
 		return;
 	
-	if (!isObject(%mount = %player.getObjectMount()))
-		return;
-	
-	if(!(%mount.getType() & $TypeMasks::VehicleObjectType))
+	if (!isObject(%mount = %player.GetBaseMount()))
 		return;
 
 	if($Sim::Time - %player.lastRandomMusicTime < 1.5)
 		return;
 	
-	if(isObject(%driver = %mount.getMountNodeObject(0)))
+	if(isObject(%driver = %mount.getControllingObject()))
 	{
 		if(%driver == %player)
 			%yes = 1;
@@ -134,10 +131,7 @@ function serverCmdStereo(%client)
 	if(!isObject(%player = %client.player))
 		return;
 	
-	if (!isObject(%mount = %player.getObjectMount()))
-		return;
-	
-	if(!(%mount.getType() & $TypeMasks::VehicleObjectType))
+	if (!isObject(%mount = %player.GetBaseMount()))
 		return;
 	
 	if(!isObject(%mount.stereoHandler))
@@ -155,7 +149,7 @@ function serverCmdStereo(%client)
 			BrickGroup_48.add(%mount.stereoHandler);
 	}
 
-	if(isObject(%driver = %mount.getMountNodeObject(0).client))
+	if(isObject(%driver = %mount.getControllingObject().client))
 	{
 		if(%driver != %client)
 			if(%driver.driverStereoMusic)
@@ -201,7 +195,7 @@ package VehicleStereo
 		{
 			if(isObject(%mount = %brick.mount))
 			{
-				if(isObject(%driver = %mount.getMountNodeObject(0).client))
+				if(isObject(%driver = %mount.getControllingObject().client))
 					if(%driver != %client)
 						if(%driver.driverStereoMusic)
 						{
@@ -254,20 +248,12 @@ package VehicleStereo
 			Parent::serverCmdSetWrenchData(%client, %data);
 	}
 	
-	function WheeledVehicle::delete(%this)
+	function ShapeBase::OnRemove(%data,%obj)
 	{
-		if(isObject(%handler = %this.stereoHandler))
+		if(isObject(%handler = %obj.stereoHandler))
 			%handler.delete();
 
-		Parent::delete(%this);
-	}
-	
-	function FlyingVehicle::delete(%this)
-	{
-		if(isObject(%handler = %this.stereoHandler))
-			%handler.delete();
-
-		Parent::delete(%this);
+		Parent::OnRemove(%data,%obj);
 	}
 
 	function serverCmdLove(%this)
@@ -282,7 +268,7 @@ package VehicleStereo
 		if(!isObject(%player = %this.player))
 			return;
 
-		if(!isObject(%vehicle = %player.getObjectMount()))
+		if(!isObject(%vehicle = %player.GetBaseMount()))
 			return Parent::serverCmdLove(%this);
 
 		if(%this.stereoClick <= 0)
@@ -301,7 +287,7 @@ package VehicleStereo
 
 	function serverCmdSit(%client)
 	{
-		if(isObject(%player = %client.player) && isObject(%mount = %player.getObjectMount()) && (%mount.getType() & $TypeMasks::VehicleObjectType))
+		if(isObject(%player = %client.player) && isObject(%mount = %player.GetBaseMount()))
 		{
 			serverCmdStereo(%client);
 			return;
@@ -312,55 +298,54 @@ package VehicleStereo
 
 	function Armor::onMount(%this, %player, %obj, %a, %b, %c, %d, %e, %f)
 	{
-		if(isObject(%vehicle = %player.getObjectMount()) && %vehicle.getDamageLevel() < %vehicle.getDatablock().maxDamage && isObject(%client = %player.client) && %client.autoStereoMusic)
-			if(%vehicle.getClassName() $= "Vehicle" || %vehicle.getClassName() $= "WheeledVehicle")
+		if(isObject(%vehicle = %player.GetBaseMount()) && %vehicle.getDamageLevel() < %vehicle.getDatablock().maxDamage && isObject(%client = %player.client) && %client.autoStereoMusic)
+		{
+			if(isObject(%driver = %vehicle.getMountNodeObject(0)))
 			{
-				if(isObject(%driver = %vehicle.getMountNodeObject(0)))
-				{
-					if(%driver == %player)
-						%yes = 1;
-				}
-				else if(%client.autoStereoMusic)
+				if(%driver == %player)
 					%yes = 1;
+			}
+			else if(%client.autoStereoMusic)
+				%yes = 1;
 
-				if($Sim::Time - %client.lastStereoMusicTime < 5)
+			if($Sim::Time - %client.lastStereoMusicTime < 5)
+			{
+				%client.centerPrint("You are changing stereo too fast!", 3);
+				Parent::onMount(%this, %player, %obj, %a, %b, %c, %d, %e, %f);
+				return;
+			}
+
+			if(%yes && (%music = %client.lastStereoMusic) !$= "" && !isObject(%vehicle.stereoHandler))
+			{
+				%client.lastStereoMusicTime = $Sim::Time;
+				%vehicle.stereoHandler = new fxDTSBrick()
 				{
-					%client.centerPrint("You are changing stereo too fast!", 3);
-					Parent::onMount(%this, %player, %obj, %a, %b, %c, %d, %e, %f);
-					return;
-				}
+					client = %client;
+					dataBlock = brickMusicData;
+					isPlanted = true;
+					isStereo = true;
+					mount = %vehicle;
+					position = "0 0 -10000";
+				};
+				if(isObject(BrickGroup_48))
+					BrickGroup_48.add(%vehicle.stereoHandler);
+				%brick = %vehicle.stereoHandler;
 
-				if(%yes && (%music = %client.lastStereoMusic) !$= "" && !isObject(%vehicle.stereoHandler))
+				%brick.setMusic(nameToID(findMusicByName(%music)));
+
+				if(isObject(%audio = %brick.audioEmitter))
 				{
-					%client.lastStereoMusicTime = $Sim::Time;
-					%vehicle.stereoHandler = new fxDTSBrick()
+					%audio.mount = %brick.mount;
+					if(!StereoHandlerGroup.isMember(%audio))
 					{
-						client = %client;
-						dataBlock = brickMusicData;
-						isPlanted = true;
-						isStereo = true;
-						mount = %vehicle;
-						position = "0 0 -10000";
-					};
-					if(isObject(BrickGroup_48))
-						BrickGroup_48.add(%vehicle.stereoHandler);
-					%brick = %vehicle.stereoHandler;
+						StereoHandlerGroup.add(%audio);
 
-					%brick.setMusic(nameToID(findMusicByName(%music)));
-
-					if(isObject(%audio = %brick.audioEmitter))
-					{
-						%audio.mount = %brick.mount;
-						if(!StereoHandlerGroup.isMember(%audio))
-						{
-							StereoHandlerGroup.add(%audio);
-
-							if(!isEventPending($StereoHandlerSch)) //If we know the loop isn't running, let's run it since we have something now.
-								VehicleStereo_Loop();
-						}
+						if(!isEventPending($StereoHandlerSch)) //If we know the loop isn't running, let's run it since we have something now.
+							VehicleStereo_Loop();
 					}
 				}
 			}
+		}
 
 		Parent::onMount(%this, %player, %obj, %a, %b, %c, %d, %e, %f);
 	}
