@@ -17,20 +17,15 @@ function MinigameSO::DR_Loop(%mini)
 	%isCustom = %mini.isCustomMini;
 	%font = $Pref::Server::DRFont;
 	%deathrace_maxtime = %mini.deathRaceMaxTime;
-	%members = %mini.numMembers;
 	%deathrace_lastReset = %mini.lastDeathRaceReset;
 	%deathrace_vehicleExplodeTime = $Pref::Server::VehicleAfkTimer;
 	%deathrace_time = mCeil(%mini.deathRaceMaxTime - ((getSimTime() - %mini.lastDeathRaceReset) / 1000));
 	%avoidCheck = %mini.avoidVehicleDeathCheck;
-
-	// starting time
-	if(%deathrace_time >= 0)
-	{
-		%isStarting = 1;
-	}
+	%isStarting = %mini.isStartingDR;
 
 	// loop through everyone
-	for(%i = 0; %i < %members; %i++)
+	%count = %mini.numMembers;
+	for(%i = 0; %i < %count; %i++)
 	{
 		%client = %mini.member[%i];
 		if(isObject(%client))
@@ -155,7 +150,6 @@ function MinigameSO::DR_Loop(%mini)
 		}
 	}
 
-	cancel(%mini.DRSch);
 	%mini.DRSch = %mini.schedule(%loopTime, "DR_Loop");
 }
 
@@ -167,8 +161,8 @@ $Hud::Score = 4;
 
 function ShapeBase::SetHud(%obj,%slot,%s)
 {
-	%mounted = %obj.getMountedObjects();
-	%count = getWordCount(%mounted) @ %obj;
+	%mounted = %obj.getMountedObjects() SPC %obj;
+	%count = getWordCount(%mounted);
 	for(%i = 0; %i < %count; %i++)
 	{
 		%player = getWord(%mounted,%i);
@@ -225,7 +219,7 @@ package DeathRace_MinigameLoop
 			%client.DR_hud.set($Hud::HP,"<just:left>\c6Health: \c3" @ mCeil((%MaxHp - %damage) / %MaxHp * 100) @ "\c6%");
 		}
 		%obj.setHud($Hud::VehicleHP,"<just:Left>\c6Vehicle: \c3" @ mCeil((%MaxHp - %damage) / %MaxHp * 100) @ "\c6%");
-		return parent::onDamage(%db,%obj,%damage);
+		//return parent::onDamage(%db,%obj,%damage);
 	}	
 
 	function GameConnection::SpawnPlayer(%c)
@@ -255,15 +249,14 @@ package DeathRace_MinigameLoop
 			{
 				%base.setNodeColor("ALL", %team.color);
 			}
+
+			cancel(%base.teamCheckSch);
 			%base.DR_TeamCheck();
 
 			%song = "NONE";
-			if(isObject(%handler = %base.stereoHandler) && isObject(%audioEmitter = %handler.audioEmitter) 
-			&& isObject(%song = %audioEmitter.profile))
+			if(isObject(%song = %base.stereoHandler.audioEmitter.profile))
 			{
-
-					%song = %song.uiName;
-
+				%song = %song.uiName;
 			}
 			%damage = %base.getDamageLevel();
 			%MaxHp = %base.getDatablock().maxDamage;
@@ -274,6 +267,7 @@ package DeathRace_MinigameLoop
 				%c.DR_hud.set($Hud::VehicleHP,"<just:Left>\c6Vehicle: \c3" @ mCeil((%MaxHp - %damage) / %MaxHp * 100) @ "\c6%");
 			}
 		}
+		
 	}
 
 	function Armor::onUnMount(%this, %obj, %vehicle, %node)
@@ -314,37 +308,31 @@ activatePackage(DeathRace_MinigameLoop);
 
 function ShapeBase::DR_TeamCheck(%vehicle)
 {
-	cancel(%vehicle.teamCheckSch);
 	%mini = getMinigameFromObject(%vehicle);
 	if(!isObject(%mini) || !%mini.isCustomMini)
 		return;
 
 	%vehicleData = %vehicle.getDatablock();
-	%count = %vehicle.getMountedObjectCount();
 	%mounted = %vehicle.getMountedObjects() SPC %vehicle;
 	%count = getWordCount(%mounted);
-	%playerCount = 0;
+	%lastTeam = "";
 	for(%i = 0; %i < %count; %i++)
 	{
-		%player = getWord(%mounted,%i);
-		if(isObject(%player.client))
+		%currTeam = getWord(%mounted,%i).client.team;
+		if(isObject(%currTeam))
 		{
-			%vehiclePassenger[%playerCount] = %player;
-			%playerCount++;
+			if(%lastTeam)
+			{
+				if(%lastTeam != %currTeam)
+				{
+					%isTeaming = true;
+					break;
+				}
+			}
+			%lastTeam = %currTeam;
 		}
 	}
 
-	%isTeaming = 0;
-	%currTeam = %vehiclePassenger[0].client.team;
-	for(%j = 1; %j < %playerCount; %j++)
-	{
-		if(%currTeam != %vehiclePassenger[%j].client.team)
-		{
-			%isTeaming = 1;
-			break;
-		}
-	}	
-	
 	//Blink car if teaming, then destroy it after a certain time
 	if(%isTeaming)
 	{

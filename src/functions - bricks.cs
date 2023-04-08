@@ -390,7 +390,6 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 		if($Pref::Server::PlayMarioKartSound && isFunction(minigameso, playsound))
 			%mini.playSound(StartRaceSound);
 	}
-	
 	if(%time == 2)
 	{
 
@@ -463,13 +462,14 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 	}
 	else
 	{
+		%string = getTimeString(mCeil(%mini.deathRaceMaxTime - ((getSimTime() - %mini.lastDeathRaceReset) / 1000)));
 		%count = %mini.numMembers;
 		for(%i = 0; %i < %count; %i++)
 		{
 			%currClient = %mini.member[%i];
 			if(isObject(%currClient))
 			{
-				%currClient.DR_hud.set($Hud::Time,"<just:right>\c6Starting in " @ getTimeString(mCeil(%mini.deathRaceMaxTime - ((getSimTime() - %mini.lastDeathRaceReset) / 1000)) @ "\n"));
+				%currClient.DR_hud.set($Hud::Time,"<just:right>\c6Starting in " @ %string  @ "\n");
 			}
 		}
 	}

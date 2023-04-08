@@ -20,7 +20,6 @@ if(!isObject(StereoHandlerGroup))
 
 function VehicleStereo_Loop()
 {
-	cancel($StereoHandlerSch);
 	if(StereoHandlerGroup.getCount() <= 0) //Don't keep going until we have something.
 		return;
 
@@ -36,6 +35,7 @@ function VehicleStereo_Loop()
 	$StereoHandlerSch = schedule($Pref::Server::VehicleStereoTick, 0, VehicleStereo_Loop);
 }
 
+cancel($StereoHandlerSch);
 $StereoHandlerSch = schedule(100, 0, VehicleStereo_Loop);
 
 function vectorRound(%vec)
@@ -56,7 +56,7 @@ function serverCmdAutoStereo(%client)
 
 function NewStereo_Set(%mount,%musicData)
 {
-	if(!isObject(%mount.stereoHandler))
+	if(!isObject(%mount.stereoHandler) && isObject(%musicData))
 	{
 		%mount.stereoHandler = new fxDTSBrick()
 		{
@@ -71,18 +71,20 @@ function NewStereo_Set(%mount,%musicData)
 			BrickGroup_48.add(%mount.stereoHandler);
 	}
 
-	%brick = %mount.stereoHandler;
-
-	%brick.setMusic(%musicData);
-
-	%brick.lastMusic = %musicData;
-	if(isObject(%audio = %brick.audioEmitter))
+	if(isObject(%mount.stereoHandler))
 	{
-		%audio.mount = %brick.mount;
-		if(!StereoHandlerGroup.isMember(%audio))
+		%brick = %mount.stereoHandler;
+
+		%brick.setMusic(%musicData);
+
+		%brick.lastMusic = %musicData;
+		if(isObject(%audio = %brick.audioEmitter))
 		{
-			StereoHandlerGroup.add(%audio);
-			VehicleStereo_Loop();
+			%audio.mount = %brick.mount;
+			if(!StereoHandlerGroup.isMember(%audio))
+			{
+				StereoHandlerGroup.add(%audio);
+			}
 		}
 	}
 }
