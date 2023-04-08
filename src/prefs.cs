@@ -1,5 +1,5 @@
 if(!strLen($Pref::Server::VehicleLimitTime)) $Pref::Server::VehicleLimitTime = 60;
-if(!strLen($Pref::Server::VehicleLimitTimeDeath)) $Pref::Server::VehicleLimitTimeDeath = 20;
+if(!strLen($Pref::Server::VehicleLimitTimeDeath)) $Pref::Server::VehicleAfkTimer = 20;
 if(!strLen($Pref::Server::VehicleInitTime)) $Pref::Server::VehicleInitTime = 60;
 if(!strLen($Pref::Server::DeathRace_Health)) $Pref::Server::DeathRace_Health = -20;
 if(!strLen($Pref::Server::DRFont)) $Pref::Server::DRFont = "arial";

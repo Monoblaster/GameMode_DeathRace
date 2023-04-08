@@ -40,9 +40,8 @@ function findclosestcolor(%x)
 
 function ShapeBase::GetBaseMount(%obj)
 {
-	%newMount = %obj;
-	%lastMount = 0;
-	while(isObject(%newMount = %newMount.getObjectMount()))
+	%lastMount = %obj;
+	while(isObject(%newMount = %lastMount.getObjectMount()))
 	{
 		%lastMount = %newMount;
 	}
@@ -60,6 +59,41 @@ function ShapeBase::GetTopMount(%obj)
 	}
 
 	return %lastMount;
+}
+
+function ShapeBase::GetMountedObjects(%obj)
+{
+	%found = "";
+	%unsearched = %obj.getid();
+	while(getWordCount(%unsearched) > 0)
+	{
+		%curr = getWord(%unsearched,0);
+		%unsearched = removeWord(%unsearched,0);
+		%count = %curr.getMountedObjectCount();
+		for(%i = 0; %i < %count; %i++)
+		{
+			%currMounted = %curr.getMountedObject(%i).getid();
+			%unsearched = %unsearched SPC %currMounted;
+			%found = %found SPC %currMounted;
+		}
+		%unsearched = trim(%unsearched);
+	}
+	return trim(%found);
+}
+
+function ShapeBase::MessageClients(%obj,%msg)
+{
+	%mounted = %obj.getMountedObjects() @ %obj;
+	%count = getWordCount(%mounted);
+	for(%i = 0; %i < %count; %i++)
+	{
+		%player = getWord(%mounted,%i);
+		%client = %player.client;
+		if(isObject(%client))
+		{
+			%client.chatMessage(%msg);
+		}
+	}
 }
 
 function SimObject::onCameraEnterOrbit(%obj, %camera)

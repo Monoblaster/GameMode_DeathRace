@@ -326,11 +326,7 @@ registerOutputEvent(Bot, setBaseMovementSpeed, "int 0 200");
 
 function Player::setVehicleLimit(%this,%maxLimit,%time)
 {
-	if(!isObject(%this)) return;
-	cancel(%this.VehicleLimitSchA);
-
-	%this.maxVehicleLimit = mFloor(%maxLimit);
-	%this.vehicleLimitTime = %this.maxVehicleLimit;
+	%this.maxOutOfVehicleTimer = mFloor(%maxLimit);
 }
 
 //Reset the speed to their datablock's max speed

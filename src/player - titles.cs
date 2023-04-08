@@ -2,7 +2,10 @@
 function Server_LoadTitles()
 {
 	if(isObject(Server_TitleGroup))
+	{
+		Server_TitleGroup.deleteAll();
 		Server_TitleGroup.delete();
+	}
 
 	new ScriptGroup(Server_TitleGroup)
 	{
@@ -714,8 +717,14 @@ function ServerTitleSet::find(%group, %name)
 
 function ServerTitle::onAdd(%title)
 {
-	if(isObject(%obj = Server_TitleGroup.find(%title.uiName)))
+	%name 			= %title.uiName;
+	%safeName 		= getSafeVariableName(%name);
+
+	if(isObject(%obj = Server_TitleGroup.objIndex[%safeName]))
+	{
+		echo("Invalid title already exists" SPC %title.uiname);
 		%obj.delete();
+	}
 
 	Server_TitleGroup.add(%title);
 
@@ -732,8 +741,7 @@ function ServerTitle::onAdd(%title)
 		%title.fontStr = "<font:" @ %title.font @ ":" @ %title.fontSize @ ">";
 	}
 
-	%name 			= %title.uiName;
-	%safeName 		= getSafeVariableName(%name);
+	
 	%description 	= %title.description;
 	%cost 			= %title.cost;
 	%colorNameStr 	= %title.colorNameStr;

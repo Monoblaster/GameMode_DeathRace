@@ -357,8 +357,11 @@ function fxDTSBrick::WinDeathRace(%this, %client)
 		if(%mapName !$= "")
 		{
 			%client.deathRaceData[%mapVarName]++;
-			%client.unlockAchievement(%mapName @ " Expert");
-		}
+			if(%client.deathRaceData[%mapVarName] >= 10)
+			{
+				%client.unlockAchievement(%mapName @ " Expert");
+			}
+}
 	}
 	else if(isObject(%mini = %client.minigame) && isFunction("fxDTSBrick", "FFExplode"))
 	{
@@ -527,7 +530,7 @@ function fxDTSBrick::ResetDeathRace(%this,%client)
 	%mini.vehicleDamageMult = 0;
 	%mini.vehicleScale = 1;
 	%mini.playerScale = 1;
-	%mini.DR_SpecialBought = 0;
+	
 
 	%mini.DR_Vehicle = $Pref::Server::DeathRace_Vehicle;
 	if(!isObject(%mini.DR_Vehicle))
@@ -555,7 +558,10 @@ function fxDTSBrick::ResetDeathRace(%this,%client)
 	if(%r == 1)
 	{
 		if(%mini.DR_SpecialBought != 0)
+		{
 			%mini.schedule(100, DR_SetSpecial, %mini.DR_SpecialBought, %group);
+			%mini.DR_SpecialBought = 0;
+		}
 		else
 			%mini.schedule(100, DR_SetSpecial, "random", %group);
 	}

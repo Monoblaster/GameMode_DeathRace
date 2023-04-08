@@ -988,7 +988,7 @@ function serverCmdRespawn(%client, %a1, %a2, %a3, %a4)
 		return;
 	}
 
-	if(isObject(%target.player))
+	if(isObject(%target.player) && %target.player.isEnabled())
 	{
 		%client.chatMessage("Did you mean /Spawn " @ %name @ "? (Player is alive)");
 		return;
