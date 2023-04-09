@@ -86,6 +86,8 @@ function NewStereo_Set(%mount,%musicData)
 				StereoHandlerGroup.add(%audio);
 			}
 		}
+		cancel($StereoHandlerSch);
+		$StereoHandlerSch = schedule(100, 0, VehicleStereo_Loop);
 	}
 }
 

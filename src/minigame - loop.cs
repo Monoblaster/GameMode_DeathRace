@@ -161,7 +161,7 @@ $Hud::Score = 4;
 
 function ShapeBase::SetHud(%obj,%slot,%s)
 {
-	%mounted = %obj.getMountedObjects() SPC %obj;
+	%mounted = %obj.getMountedObjects();
 	%count = getWordCount(%mounted);
 	for(%i = 0; %i < %count; %i++)
 	{
@@ -176,6 +176,13 @@ function ShapeBase::SetHud(%obj,%slot,%s)
 
 function WheeledVehicleData::onDamage(%this,%obj,%damage)
 {
+	parent::onDamage(%this,%obj,%damage);
+	ShapeBase::onDamage(%this,%obj,%damage);
+}
+
+function Armor::onDamage(%this,%obj,%damage)
+{
+	parent::onDamage(%this,%obj,%damage);
 	ShapeBase::onDamage(%this,%obj,%damage);
 }
 
@@ -196,14 +203,14 @@ package DeathRace_MinigameLoop
 	function NewStereo_Set(%mount,%musicData)
 	{
 		%song = "NONE";
-		if(isObject(%musicData))
+		if(%musicData.uiName !$= "")
 		{
 			%song = %musicData.uiName;
 		}
 		%client = %mount.client;
 		if(isObject(%client))
 		{
-			%client.DR_hud.set($Hud::VehicleSong,"<just:Right>\c6Vehicle song: \c4" @ %song @ "\n");
+			%client.DR_hud.set($Hud::VehicleSong,"<just:Right>\c6Vehicle song: \c4" @ %song @ "\n ");
 		}
 		%mount.setHud($Hud::VehicleSong,"<just:Right>\c6Vehicle song: \c4" @ %song @ "\n");
 		return parent::NewStereo_Set(%mount,%musicData);
@@ -254,9 +261,9 @@ package DeathRace_MinigameLoop
 			%base.DR_TeamCheck();
 
 			%song = "NONE";
-			if(isObject(%song = %base.stereoHandler.audioEmitter.profile))
+			if(%base.stereoHandler.audioEmitter.profile.uiName !$= "")
 			{
-				%song = %song.uiName;
+				%song = %base.stereoHandler.audioEmitter.profile.uiName;
 			}
 			%damage = %base.getDamageLevel();
 			%MaxHp = %base.getDatablock().maxDamage;
