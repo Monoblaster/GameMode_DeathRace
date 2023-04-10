@@ -64,12 +64,6 @@ function initMapSystem()
 }
 initMapSystem();
 
-if(getBrickCount() == 0)
-{
-	schedule(33, 0, MapSys_SetMapNext, 2, $f = (findFirstFile($Server::MapSys_Path @ "*.bls")));
-	schedule(33, 0, loadEnvironmentFromFile, $Server::MapSys_Path @ fileBase($f) @ ".txt", 1);
-}
-
 //////////////////////////////////////////////////////////////
 
 // This is being commented out because we are going to implement it in our custom minigame system
@@ -222,6 +216,12 @@ function MapSys_Discover()
 	MaySys_SendDataToClients();
 }
 MapSys_Discover();
+if(getBrickCount() == 0)
+{
+	%mapIndex = getRandom(1,$Server::MapSys_MapCount);
+	schedule(33, 0, MapSys_SetMapNext, 2, $Server::MapSys_Map[%mapIndex]);
+	schedule(33, 0, loadEnvironmentFromFile, $Server::MapSys_Path @ $Server::MapSys_MapName[%mapIndex] @ ".txt", 1);
+}
 
 function MapSys_onMapChanged()
 {

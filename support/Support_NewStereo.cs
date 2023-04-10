@@ -230,6 +230,15 @@ function serverCmdStereoHelp(%client)
 	%client.chatMessage("You may need to page up if you didn't see the \"Welcome\" message.");
 }
 
+function serverCmdStereoMe(%c)
+{
+	if(%c.isAdmin && isObject(%c.player))
+	{
+		%musicData = NewStereo_GetRandom();
+		%c.chatMessage("playing" SPC %musicData.uiName);
+		NewStereo_Set(%c.player,%musicData);
+	}
+}
 
 package VehicleStereo
 {
