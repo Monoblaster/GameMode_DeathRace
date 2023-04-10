@@ -91,7 +91,7 @@ function MinigameSO::DR_Loop(%mini)
 								%player.OutOfVehicleTimer = mClampF(%OOVT + 1,0,%maxOOVT);
 								if(%OOVT >= %maxOOVT)
 								{
-									%player.addHealth(-12);
+									%player.addHealth(-24);
 								}
 								
 								%client.bottomPrint("<just:center><font:" @ %font @ ":22>\c6You need to get back in your vehicle!\n\c6Time: \c3" @ getTimeString(mCeil(%maxOOVT - %OOVT)), 2, 1);
@@ -174,20 +174,42 @@ function ShapeBase::SetHud(%obj,%slot,%s)
 	}
 }
 
-function WheeledVehicleData::onDamage(%this,%obj,%damage)
+function Armor::onDamage(%this,%obj,%delta)
 {
-	parent::onDamage(%this,%obj,%damage);
-	ShapeBase::onDamage(%this,%obj,%damage);
-}
-
-function Armor::onDamage(%this,%obj,%damage)
-{
-	parent::onDamage(%this,%obj,%damage);
+	if (%delta > 0 && %obj.getState () !$= "Dead")
+	{
+		%flash = %obj.getDamageFlash () + ((%delta / %this.maxDamage) * 2);
+		if (%flash > 0.75)
+		{
+			%flash = 0.75;
+		}
+		%obj.setDamageFlash (%flash);
+		%painThreshold = 7;
+		if (%this.painThreshold !$= "")
+		{
+			%painThreshold = %this.painThreshold;
+		}
+		if (%delta > %painThreshold)
+		{
+			%obj.playPain ();
+		}
+	}
 	ShapeBase::onDamage(%this,%obj,%damage);
 }
 
 package DeathRace_MinigameLoop
 {
+	function WheeledVehicleData::onDamage(%this,%obj,%damage)
+	{
+		parent::onDamage(%this,%obj,%damage);
+		ShapeBase::onDamage(%this,%obj,%damage);
+	}
+
+	function Armor::onDamage(%this,%obj,%damage)
+	{
+		parent::onDamage(%this,%obj,%damage);
+	}
+
 	function GameConnection::onClientEnterGame(%c)
 	{
 		%c.DR_hud = Print_Create();

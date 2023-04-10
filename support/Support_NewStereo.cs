@@ -151,8 +151,9 @@ function serverCmdRandomStereo(%client)
 
 	if(!isObject(%player = %client.player))
 		return false;
-	
-	if (!isObject(%mount = %player.GetBaseMount()))
+
+	%mount = %player.GetBaseMount();
+	if (!isObject(%mount) || !%mount.getDataBlock().rideable)
 		return false;
 
 	if(isObject(%driver = %mount.getControllingObject().client))
@@ -185,7 +186,7 @@ function serverCmdStereo(%client)
 	if(!isObject(%player = %client.player))
 		return;
 	
-	if (!isObject(%mount = %player.GetBaseMount()))
+	if (!isObject(%mount = %player.GetBaseMount()) || !%mount.getDataBlock().rideable)
 		return;
 
 	if(isObject(%driver = %mount.getControllingObject().client))
@@ -235,9 +236,10 @@ package VehicleStereo
 		%player = %client.player;
 		if(%client.newStereo_Menu && isObject(%player))
 		{
+			%mount = %player.GetBaseMount();
 			%musicData = getWord(getField(%data,1),1);
 			%client.newStereo_Menu = false;
-			if(NewStereo_Menu(%player.GetBaseMount(),%client,%musicData))
+			if(isObject(%mount) && %mount.getDataBlock().rideable && NewStereo_Menu(%mount,%client,%musicData))
 			{
 				return;
 			}
