@@ -280,7 +280,7 @@ function MapSys_SetMapNext(%stage, %file)
 			for(%i = 0; %i < clientGroup.getCount(); %i++)
 			{
 				%cl = clientGroup.getObject(%i);
-				if(%cl.Shop_Client && %cl.DR_MapGUI)
+				if(%cl.Shop_Client && %cl.dataInstance($DR::SaveSlot).DR_MapGUI)
 					commandToClient(%cl, 'DRShop', "OpenMap");
 				else if(!$Server::MapSys::Temp::IgnoreCPM[%cl.getBLID()])
 					%cl.displayCenterPrintMenu(%data, "onMapSelectCPM");

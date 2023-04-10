@@ -138,7 +138,7 @@ function GameConnection::Shop_SendSingleData(%this, %obj)
 				%obj.description,
 				mFloor(%obj.damage) TAB mFloor(%obj.radiusDamage),
 				%obj.image TAB %obj.imageColor,
-				mFloor($BoughtItem_[%this.getBLID(), %strName]) TAB mFloor(%obj.buyOnce),
+				mFloor(%this.dataIntsance($DR::SaveSlot).boughtItem[%strName]) TAB mFloor(%obj.buyOnce),
 				mFloor(%obj.adminLevel) TAB mFloor(%obj.canSave) TAB mFloor(%obj.cannotModify) TAB %obj.shopClass,
 				(%obj.datablockName $= "" ? nameToID(%obj) : nameToID(findItemByName(%obj.datablockName))));
 		}
@@ -168,8 +168,8 @@ function GameConnection::Shop_SendData(%this, %avoidReset)
 	commandToClient(%this, 'DRShop', "SetSetting", "HUD", %this.DR_HUD);
 	commandToClient(%this, 'DRShop', "SetSetting", "GUIHUD", %this.DR_GUIHUD);
 	commandToClient(%this, 'DRShop', "SetSetting", "GUIHUDPassenger", %this.DR_HUDPassenger);
-	commandToClient(%this, 'DRShop', "SetSetting", "GUIRound", %this.DR_GUIPerRound);
-	commandToClient(%this, 'DRShop', "SetSetting", "MapVoteGUI", %this.DR_MapGUI);
+	commandToClient(%this, 'DRShop', "SetSetting", "GUIRound", %this.dataInstance($DR::SaveSlot).DR_GUIPerRound);
+	commandToClient(%this, 'DRShop', "SetSetting", "MapVoteGUI", %this.dataInstance($DR::SaveSlot).DR_MapGUI);
 	
 	%boughtItems = 0;					
 	for(%i = 0; %i < %group.getCount(); %i++)
@@ -179,7 +179,7 @@ function GameConnection::Shop_SendData(%this, %avoidReset)
 		if(%obj.uiName !$= "")
 		{
 			%strName = getSafeVariableName(%obj.uiName);
-			%bought = mFloor($BoughtItem_[%this.getBLID(), %strName]);
+			%bought = mFloor(%this.dataIntsance($DR::SaveSlot).boughtItem[%strName]);
 			if(%bought)
 				%boughtItems++;
 
@@ -200,8 +200,8 @@ function GameConnection::Shop_SendData(%this, %avoidReset)
 		}
 	}
 
-	//if(%this.DR_totalItemsBought $= "")
-		%this.DR_totalItemsBought = %boughtItems;
+	//if(%this.dataInstance($DR::SaveSlot).DR_totalItemsBought $= "")
+		%this.dataInstance($DR::SaveSlot).DR_totalItemsBought = %boughtItems;
 }
 
 function GameConnection::PingCheck(%this)

@@ -760,7 +760,7 @@ function ServerTitle::onAdd(%title)
 
 		if(%client.Shop_Client)
 		{
-			%unlocked = $Server::Titles::Unlocked_[%bl_id, %safeName];
+			%unlocked = %client.dataInstance($DR::ShopSlot).unlockedTitle[%safeName];
 			if(%cost > 0 || %unlocked)
 				commandToClient(%client, 'DRShop', "AddTitle", %name, %unlocked, %description, %cost, %colorNameStr, %font, %fontSize, %MLTags, %realID);
 		}
@@ -779,7 +779,7 @@ function ServerTitle::onRemove(%title)
 		%client = ClientGroup.getObject(%i);
 		%bl_id 	= %client.getBLID();
 
-		if(%client.Shop_Client && (%title.cost > 0 || $Server::Titles::Unlocked_[%bl_id, %safeName]))
+		if(%client.Shop_Client && (%title.cost > 0 || %client.dataInstance($DR::ShopSlot).unlockedTitle[%safeName]))
 		{
 			commandToClient(%client, 'DRShop', "RemoveTitle", %name, %realID);
 		}
@@ -794,15 +794,14 @@ function GameConnection::lockTitle(%this, %title)
 			return -1;
 
 	%safeName = getSafeVariableName(%title.uiName);
-	if(!$Server::Titles::Unlocked_[%bl_id, %safeName])
+	if(!%this.dataInstance($DR::ShopSlot).unlockedTitle[%safeName])
 		return 0;
 
-	$Server::Titles::Unlocked_[%bl_id, %safeName] = 0;
+	%this.dataInstance($DR::ShopSlot).unlockedTitle[%safeName] = 0;
 	if(%this.Shop_Client)
 		commandToClient(%this, 'DRShop', "setTitleLocked", %title, 1);
 
 	echo(%this.getPlayerName() @ " has a locked title: " @ %title.uiName);
-	export("$Server::Titles::Unlocked_" @ %bl_id @ "*", "config/server/SavedTitles/" @ %bl_id @ ".cs");
 	return 1;
 }
 
@@ -814,17 +813,16 @@ function GameConnection::unlockTitle(%this, %title)
 			return -1;
 
 	%safeName = getSafeVariableName(%title.uiName);
-	if($Server::Titles::Unlocked_[%bl_id, %safeName])
+	if(%this.dataInstance($DR::ShopSlot).unlockedTitle[%safeName])
 		return 0;
 
-	$Server::Titles::Unlocked_[%bl_id, %safeName] = 1;
+	%this.dataInstance($DR::ShopSlot).unlockedTitle[%safeName] = 1;
 	if(%this.Shop_Client)
 		commandToClient(%this, 'DRShop', "setTitleLocked", %title, 0);
 
 	%this.chatMessage("\c6You have a new title (/Titles): " @ %title.MLTags @ %title.fontStr @ %title.colorNameStr);
 
 	echo(%this.getPlayerName() @ " has a new title: " @ %title.uiName);
-	export("$Server::Titles::Unlocked_" @ %bl_id @ "*", "config/server/SavedTitles/" @ %bl_id @ ".cs");
 	return 1;
 }
 
@@ -845,7 +843,7 @@ function GameConnection::buyTitle(%this, %title)
 	}
 
 	%safeName = getSafeVariableName(%title.uiName);
-	if($Server::Titles::Unlocked_[%bl_id, %safeName])
+	if(%this.dataInstance($DR::ShopSlot).unlockedTitle[%safeName])
 	{
 		%this.chatMessage("\c6You already own this title!");
 		return 1;
@@ -868,7 +866,7 @@ function GameConnection::setTitle(%this, %title, %silent)
 
 	if(%title $= "none" || %title $= "")
 	{
-		if(isObject(%oldTitle = Server_TitleGroup.find($Server::Titles::Title[%this.getBLID()], 1)) && %oldTitle.variable !$= "")
+		if(isObject(%oldTitle = Server_TitleGroup.find(%this.dataInstance($DR::SaveSlot).title, 1)) && %oldTitle.variable !$= "")
 			%this.TitleData[%oldTitle.variable] = 0;
 
 		%this.chatMessage("\c6Title removed.");
@@ -899,7 +897,7 @@ function GameConnection::setTitle(%this, %title, %silent)
 	}
 
 	%safeName = getSafeVariableName(stripMLControlChars(%title.uiName));
-	if(!$Server::Titles::Unlocked_[%bl_id, %safeName])
+	if(!%this.dataInstance($DR::ShopSlot).unlockedTitle[%safeName])
 	{
 		if(!%silent)
 			%this.chatMessage("\c6You do not own this title!");
@@ -907,7 +905,7 @@ function GameConnection::setTitle(%this, %title, %silent)
 		return;
 	}
 
-	if(isObject(%oldTitle = Server_TitleGroup.find($Server::Titles::Title[%this.getBLID()])) && %oldTitle.variable !$= "")
+	if(isObject(%oldTitle = Server_TitleGroup.find(%this.dataInstance($DR::SaveSlot).title)) && %oldTitle.variable !$= "")
 		%this.TitleData[%oldTitle.variable] = 0;
 
 	if(%this.oldClanPrefix $= "")
@@ -916,7 +914,7 @@ function GameConnection::setTitle(%this, %title, %silent)
 	if(%this.oldClanSuffix $= "")
 		%this.oldClanSuffix = %this.clanSuffix;
 
-	$Server::Titles::Title[%this.getBLID()] = stripMLControlChars(%title.uiName);
+	%this.dataInstance($DR::SaveSlot).title = stripMLControlChars(%title.uiName);
 
 	%this.titleName = getSafeVariableName(stripMLControlChars(%title.uiName));
 	%this.titleUIName = %title.uiName;
@@ -933,7 +931,7 @@ function GameConnection::setTitle(%this, %title, %silent)
 
 function GameConnection::getTitle(%this)
 {
-	return Server_TitleGroup.find($Server::Titles::Title[%this.getBLID()]);
+	return Server_TitleGroup.find(%this.dataInstance($DR::SaveSlot).title);
 }
 
 function GameConnection::sendTitles(%client, %clear)
@@ -952,33 +950,12 @@ function GameConnection::sendTitles(%client, %clear)
 		%titleObj 	= Server_TitleGroup.getObject(%i);
 		%name 		= %titleObj.uiName;
 		%safeName 	= getSafeVariableName(%name);
-		%unlocked 	= $Server::Titles::Unlocked_[%bl_id, %safeName];
+		%unlocked 	= %client.dataInstance($DR::ShopSlot).unlockedTitle[%safeName];
 		if(%titleObj.cost > 0 || %unlocked)
 		{
 			commandToClient(%client, 'DRShop', "AddTitle", %name, %unlocked, %titleObj.description, %titleObj.cost, %titleObj.colorNameStr, %titleObj.font, %titleObj.fontSize, %titleObj.MLTags, %titleObj.getID());
 		}
 	}
-}
-
-function GameConnection::loadTitle(%client)
-{
-	%bl_id = %client.getBLID();
-	if(isFile("config/server/SavedTitles/" @ %bl_id @ ".cs") && !$Server::Titles::Loaded[%bl_id])
-	{
-		$Server::Titles::Loaded[%bl_id] = 1;
-		exec("config/server/SavedTitles/" @ %bl_id @ ".cs");
-	}
-
-	%count = Server_TitleGroup.getCount();
-	for(%i = 0; %i < %count; %i++)
-	{
-		%titleObj 	= Server_TitleGroup.getObject(%i);
-		if(hasItemOnList(%titleObj.bl_idList, %bl_id) || %client.isAdmin && %titleObj.bl_idList $= "admin")
-			%client.unlockTitle(%titleObj);
-	}
-
-	if(isObject(%title = Server_TitleGroup.find($Server::Titles::Title[%bl_id])))
-		%client.setTitle(%title, 1);
 }
 
 function serverCmdSetTitle(%this, %a0, %a1, %a2, %a3, %a4, %a5)
@@ -1028,7 +1005,7 @@ function serverCmdTitleShop(%this)
 
 		if(%title.cost > 0)
 		{
-			if(%title.cost > 0 && !$Server::Titles::Unlocked_[%bl_id, %safeName])
+			if(%title.cost > 0 && !%this.dataInstance($DR::ShopSlot).unlockedTitle[%safeName])
 			{
 				if(!%init)
 				{
@@ -1063,7 +1040,7 @@ function serverCmdTitles(%this)
 		%title = Server_TitleGroup.getObject(%i);
 		%safeName = getSafeVariableName(%title.uiName);
 
-		if($Server::Titles::Unlocked_[%bl_id, %safeName])
+		if(%this.dataInstance($DR::ShopSlot).unlockedTitle[%safeName])
 		{
 			if(!%init)
 			{
@@ -1144,7 +1121,7 @@ function serverCmdGiveTitle(%this, %targName, %a0, %a1, %a2, %a3, %a4, %a5)
 
 	%bl_id = %targ.getBLID();
 	%safeName = getSafeVariableName(stripMLControlChars(%title.uiName));
-	if($Server::Titles::Unlocked_[%bl_id, %safeName])
+	if(%this.dataInstance($DR::ShopSlot).unlockedTitle[%safeName])
 	{
 		%this.chatMessage("\c3" @ %targ.getPlayerName() @ " \c6already has this title.");
 		return;
@@ -1177,7 +1154,7 @@ function serverCmdWhoHasTitles(%this, %targName)
 		%title = Server_TitleGroup.getObject(%i);
 		%safeName = getSafeVariableName(stripMLControlChars(%title.uiName));
 
-		if($Server::Titles::Unlocked_[%bl_id, %safeName])
+		if(%this.dataInstance($DR::ShopSlot).unlockedTitle[%safeName])
 		{
 			%this.chatMessage("  \c6Title " @ %title.MLTags @ %title.fontStr @ %title.colorNameStr);
 			%titles++;
@@ -1190,12 +1167,6 @@ if(isPackage("Server_Titles"))
 
 package Server_Titles
 {
-	function GameConnection::autoAdminCheck(%this)
-	{
-		%this.loadTitle();
-		return Parent::autoAdminCheck(%this);
-	}
-
 	function serverCmdMessageSent(%this, %message)
 	{
 		%oldPre = %this.clanPrefix;

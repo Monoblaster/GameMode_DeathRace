@@ -11,9 +11,9 @@ function serverCmdWhyNoTools(%this)
 
 function serverCmdToggleHUD(%this)
 {
-	%this.noHUD = !%this.noHUD;
-	%this.chatMessage("\c6HUD is now " @ (%this.noHUD ? "\c0OFF" : "\c2ON"));
-	if(%this.noHUD)
+	%this.dataInstance($DR::SaveSlot).DR_NoHud = !%this.dataInstance($DR::SaveSlot).DR_NoHud;
+	%this.chatMessage("\c6HUD is now " @ (%this.dataInstance($DR::SaveSlot).DR_NoHud ? "\c0OFF" : "\c2ON"));
+	if(%this.dataInstance($DR::SaveSlot).DR_NoHud)
 		%this.centerPrint(" ", 1);
 	else if(isObject(%player = %this.player))
 	{

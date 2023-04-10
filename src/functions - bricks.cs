@@ -308,11 +308,11 @@ function fxDTSBrick::WinDeathRace(%this, %client)
 				{
 					%teamMember.incScore(%teamScore);
 
-					%teamMember.DR_FirstWin = 1;
+					%teamMember.dataInstance($DR::SaveSlot).DR_FirstWin = 1;
 					%teamMember.unlockAchievement("I Win!");
 					
-					%teamMember.DR_TotalWins++;
-					%teamMember.DR_TotalWinsByButton++;
+					%teamMember.dataInstance($DR::SaveSlot).DR_totalWins++;
+					%teamMember.dataInstance($DR::SaveSlot).DR_totalWinsByButton++;
 
 					%teamMember.unlockAchievement("I am a winner!"); 
 					%teamMember.unlockAchievement("Veteran Driver");
@@ -320,8 +320,8 @@ function fxDTSBrick::WinDeathRace(%this, %client)
 
 					if(%mapName !$= "")
 					{
-						%teamMember.deathRaceData[%mapVarName]++;
-						if(%teamMember.deathRaceData[%mapVarName] >= 10)
+						%teamMember.dataInstance($DR::SaveSlot).DeathRaceData[%mapVarName]++;
+						if(%teamMember.dataInstance($DR::SaveSlot).DeathRaceData[%mapVarName] >= 10)
 						{
 							%teamMember.unlockAchievement(%mapName @ " Expert");
 						}
@@ -344,11 +344,11 @@ function fxDTSBrick::WinDeathRace(%this, %client)
 		%mini.schedulereset();
 		%mini.resetting = 1;
 
-		%client.DR_FirstWin = 1;
+		%client.dataInstance($DR::SaveSlot).DR_FirstWin = 1;
 		%client.unlockAchievement("I Win!");
 		
-		%client.DR_TotalWins++;
-		%client.DR_TotalWinsByButton++;
+		%client.dataInstance($DR::SaveSlot).DR_totalWins++;
+		%client.dataInstance($DR::SaveSlot).DR_totalWinsByButton++;
 
 		%client.unlockAchievement("I am a winner!"); 
 		%client.unlockAchievement("Veteran Driver");
@@ -356,8 +356,8 @@ function fxDTSBrick::WinDeathRace(%this, %client)
 
 		if(%mapName !$= "")
 		{
-			%client.deathRaceData[%mapVarName]++;
-			if(%client.deathRaceData[%mapVarName] >= 10)
+			%client.dataInstance($DR::SaveSlot).DeathRaceData[%mapVarName]++;
+			if(%client.dataInstance($DR::SaveSlot).DeathRaceData[%mapVarName] >= 10)
 			{
 				%client.unlockAchievement(%mapName @ " Expert");
 			}
@@ -454,7 +454,7 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 			%currClient = %mini.member[%i];
 			if(isObject(%currClient))
 			{
-				%currClient.DR_hud.set($Hud::Time,"<just:right>\n");
+				%currClient.DR_hudObject.set($Hud::Time,"<just:right>\n");
 				if(isObject(%player = %currClient.player) && vectorDist(%player.getPosition(), %player.DR_SpawnPosition) < 5)
 					%player.kill();
 			}
@@ -469,7 +469,7 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 			%currClient = %mini.member[%i];
 			if(isObject(%currClient))
 			{
-				%currClient.DR_hud.set($Hud::Time,"<just:right>\c6Starting in " @ %string  @ "\n");
+				%currClient.DR_hudObject.set($Hud::Time,"<just:right>\c6Starting in " @ %string  @ "\n");
 			}
 		}
 	}

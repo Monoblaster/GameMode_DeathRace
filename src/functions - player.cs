@@ -12,14 +12,14 @@ package DeathRace_Player
 
 	function GameConnection::incScore(%this,%score)
 	{
-		if(!%this.DR_pointFixOnce && %this.score > %this.DR_totalPoints && %this.score > 0)
+		if(!%this.dataInstance($DR::SaveSlot).DR_pointFixOnce && %this.score > %this.dataInstance($DR::SaveSlot).DR_totalPoints && %this.score > 0)
 		{
-			%this.DR_pointFixOnce = 1;
-			%this.DR_totalPoints = %this.score;
+			%this.dataInstance($DR::SaveSlot).DR_pointFixOnce = 1;
+			%this.dataInstance($DR::SaveSlot).DR_totalPoints = %this.score;
 		}
 
 		if(%score > 0)
-			%this.DR_totalPoints += %score;
+			%this.dataInstance($DR::SaveSlot).DR_totalPoints += %score;
 		
 		if(%this.getScore() < -5)
 		{
@@ -74,12 +74,12 @@ package DeathRace_Player
 		
 		if(isObject(%sourceClient))
 		{
-			%sourceClient.DR_giveDamage += mClampF(%damage, 0, %data.maxDamage);
+			%sourceClient.dataInstance($DR::SaveSlot).DR_giveDamage += mClampF(%damage, 0, %data.maxDamage);
 		}
 
 		if(isObject(%client))
 		{
-			%client.DR_takeDamage += mClampF(%damage, 0, %data.maxDamage);
+			%client.dataInstance($DR::SaveSlot).DR_takeDamage += mClampF(%damage, 0, %data.maxDamage);
 		}
 
 		return %r;
@@ -93,6 +93,23 @@ package DeathRace_Player
 
 		%obj.invulnerable = false;
 		%obj.damage(%obj, %obj.getPosition(), 10000, $DamageType::Lava);
+	}
+
+	function fxDTSBrick::StartDeathRace(%this, %time, %client)
+	{
+		if(!isObject(%mini = getMiniGameFromObject(%this)))
+			return Parent::onEnterLiquid(%data, %obj, %coverage, %type);
+		
+		%count = %mini.numMembers;
+		for(%i = 0; %i < %count; %i++)
+		{
+			%member = %mini.member[%i];
+			if(isObject(%member))
+			{
+				%member.DeathRace_Save();
+			}
+		}
+		return Parent::onEnterLiquid(%data, %obj, %coverage, %type);
 	}
 };
 activatePackage(DeathRace_Player);
@@ -123,92 +140,49 @@ function GameConnection::resetDRKill(%this)
 
 function GameConnection::getTotalPlayTime(%this)
 {
-	return %this.DR_PlayTime + ($Sim::Time - %this.TotalPlayTime);
+	return %this.dataInstance($DR::SaveSlot).DR_PlayTime + ($Sim::Time - %this.TotalPlayTime);
 }
 
 function GameConnection::DeathRace_Save(%this)
 {
-    if(!isObject(%this))
-        return;
-    
-    %path = $DeathRace::Profiles @ %this.getBLID() @ ".DeathRaceProfile";
-    
-    %file = new FileObject();
-    %file.openForWrite(%path);
-    
-    %file.writeLine(%this.score TAB %this.getPlayerName());
-    %file.writeLine("takeDamage"		TAB %this.DR_takeDamage			TAB "// How much damage was received");
-    %file.writeLine("giveDamage"		TAB %this.DR_giveDamage			TAB "// How much damage was given");
-    %file.writeLine("totalKills"		TAB %this.DR_totalKills			TAB "// How much damage was taken");
-    %file.writeLine("totalDeaths"		TAB %this.DR_totalDeaths			TAB "// How many times they died");
-    %file.writeLine("totalWins"			TAB %this.DR_totalWins			TAB "// How many wins they have");
-    %file.writeLine("totalWinsByButton"	TAB %this.DR_totalWinsByButton	TAB "// How many wins they have by pressing button (counts as being alive with team too)");
-    %file.writeLine("totalRounds"		TAB %this.DR_totalRounds			TAB "// How many rounds played");
-    %file.writeLine("totalPoints"		TAB %this.DR_totalPoints			TAB "// How many points they have received, this counts into players 'cheating' outside of minigame");
-    %file.writeLine("totalItemsBought"	TAB %this.DR_totalItemsBought		TAB "// How many items bought");
-    %file.writeLine("FirstWin"			TAB %this.DR_FirstWin				TAB "// If they won at least one game");
-    %file.writeLine("PlayTime"			TAB %this.getTotalPlayTime() 					TAB "// How much they have played");
-    %file.writeLine("pointFixOnce"		TAB %this.DR_pointFixOnce 		TAB "// Point fix");
-
-    %file.writeLine("HUD"				TAB %this.DR_HUD					TAB "// Setting");
-    %file.writeLine("GUIHUD"			TAB %this.DR_GUIHUD				TAB "// Setting");
-    %file.writeLine("GUIPerRound"		TAB %this.DR_GUIPerRound 			TAB "// Setting");
-    %file.writeLine("MapGUI"			TAB %this.DR_MapGUI				TAB "// Setting");
-    %file.writeLine("HUDPassenger"		TAB %this.DR_HUDPassenger 		TAB "// Setting");
-
-    // Map data
-    for(%i = 1; %i <= $Server::MapSys_MapCount; %i++)
-    {
-    	%name = $Server::MapSys_MapName[%i];
-    	%varName = "totalButtonWinsOn" @ getSafeVariableName(%name);
-    	%file.writeLine(%varName		TAB %this.DeathRaceData[%varName] 				TAB "// Map data - wins");
-    }
+	%this.dataInstance($DR::SaveSlot).DR_PlayTime = %this.getTotalPlayTime() ;
+    %this.dataInstance($DR::SaveSlot).DR_Score = %this.score;
+	%this.dataInstance_ListSave();
 
     echo("\'" @ %this.name @ "(" @ %this.getBLID() @ ")\' profile has been saved.");
-    %file.close();
-    %file.delete();
 }
 
 function GameConnection::DeathRace_Load(%this) {
-	if(!isObject(%this)) return;
-	
+	%this.dataInstance_ListLoad();
+
+	if(%this.dataInstance($DR::SaveSlot).DR_totalPoints $= "")
+		%this.dataInstance($DR::SaveSlot).DR_totalPoints = %this.score;
+
+	if(%this.dataInstance($DR::SaveSlot).DR_noHUD $= "")
+		%this.dataInstance($DR::SaveSlot).DR_noHUD = 0;
+
+	if(%this.dataInstance($DR::SaveSlot).DR_GUIPerRound $= "")
+		%this.dataInstance($DR::SaveSlot).DR_GUIPerRound = 1;
+
+	if(%this.dataInstance($DR::SaveSlot).DR_MapGUI $= "")
+		%this.dataInstance($DR::SaveSlot).DR_MapGUI = 1;
+
+	%this.setScore(%this.dataInstance($DR::SaveSlot).DR_Score);
+
 	%bl_id = %this.getBLID();
-	if(isFile(%file = "config/server/Achievements/" @ %bl_id @ ".cs"))
-		exec(%file);
 
-	if(%this.DR_totalPoints $= "")
-		%this.DR_totalPoints = %this.score;
-
-	if(%this.DR_HUD $= "")
-		%this.DR_HUD = 1;
-
-	if(%this.DR_GUIHUD $= "")
-		%this.DR_GUIHUD = 1;
-
-	if(%this.DR_GUIPerRound $= "")
-		%this.DR_GUIPerRound = 1;
-
-	if(%this.DR_MapGUI $= "")
-		%this.DR_MapGUI = 1;
-
-	%path = $DeathRace::Profiles @ %this.getBLID() @ ".DeathRaceProfile";
-	if(!isFile(%path))
+	%count = Server_TitleGroup.getCount();
+	for(%i = 0; %i < %count; %i++)
 	{
-		echo("\'" @ %this.name @ "(" @ %this.getBLID() @ ")\' does not have a profile \'" @ %path @ "\'. Creating one on leave.");
-		return;
+		%titleObj 	= Server_TitleGroup.getObject(%i);
+		if(hasItemOnList(%titleObj.bl_idList, %bl_id) || %this.isAdmin && %titleObj.bl_idList $= "admin")
+			%this.unlockTitle(%titleObj);
 	}
-	%file = new FileObject();
-	%file.openForRead(%path);
-	
+
+	if(isObject(%title = Server_TitleGroup.find(%this.dataInstance($DR::SaveSlot).title[%bl_id])))
+		%this.setTitle(%title, 1);
+
 	echo("'" @ %this.name @ "' profile has been loaded.");
-	
-	%this.setScore(getField(%file.readLine(), 0));
-	while(!%file.isEOF()) {
-		%line = %file.readLine();
-		%this.DeathRaceData[getField(%line,0)] = getField(%line, 1);
-	}
-	%file.close();
-	%file.delete();
 }
 
 function GameConnection::SendLeaderboard(%client)
@@ -250,7 +224,7 @@ function GameConnection::DR_Spawn(%this)
 	%player.DR_SpawnPosition = %player.getPosition();
 	%this.spyObj = 0;
 
-	%this.DR_PlayTime += ($Sim::Time - %this.TotalPlayTime);
+	%this.getTotalPlayTime();
 	%this.TotalPlayTime = $Sim::Time;
 	%this.unlockAchievement("Deathrace Marathon");
 	%this.unlockAchievement("Deathrace Addiction");

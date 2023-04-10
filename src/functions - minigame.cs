@@ -12,7 +12,6 @@ package DeathRace_Minigame
 	function GameConnection::AutoAdminCheck(%client)
 	{
 		%client.DeathRace_Load();
-		%client.loadscore = %client.score;
 		return Parent::AutoAdminCheck(%client);
 	}
 
@@ -50,7 +49,7 @@ package DeathRace_Minigame
 	function MiniGameSO::removeMember(%this, %member)
 	{
 		%member.oldscore = %member.score;
-		%this.DR_PlayTime += ($Sim::Time - %this.TotalPlayTime);
+		%this.dataInstance($DR::SaveSlot).DR_PlayTime += ($Sim::Time - %this.TotalPlayTime);
 		%this.TotalPlayTime = $Sim::Time;
 		Parent::removeMember(%this, %member);
 		%member.setscore(%member.oldscore);
@@ -62,7 +61,7 @@ package DeathRace_Minigame
 
 		if(isObject(%killerClient) && %killerClient.getClassName() $= "GameConnection" && %this != %killerClient)
 		{
-			%killerClient.DR_totalKills++;
+			%killerClient.dataInstance($DR::SaveSlot).DR_totalKills++;
 			%killerClient.unlockAchievement("Unstoppable");
 			%killerClient.unlockAchievement("On the Kill");
 
@@ -70,7 +69,7 @@ package DeathRace_Minigame
 		}
 
 		if(%damageType != $DamageType::AFK)
-			%this.DR_totalDeaths++;
+			%this.dataInstance($DR::SaveSlot).DR_totalDeaths++;
 	}
 
 	function SimObject::setNTObjectName(%obj, %name)

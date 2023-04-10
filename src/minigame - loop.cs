@@ -37,9 +37,9 @@ function MinigameSO::DR_Loop(%mini)
 				%OOVT = %player.OutOfVehicleTimer;
 				%maxOOVT = %player.maxOutOfVehicleTimer;
 				%vehicle = %player.getBaseMount();
-				if(!%client.noHud)
+				if(!%client.dataInstance($DR::SaveSlot).DR_NoHud)
 				{
-					%hud = %client.DR_hud;
+					%hud = %client.DR_hudObject;
 				}
 
 				if((%curTime - %player.lastTick) > 1)
@@ -131,9 +131,9 @@ function MinigameSO::DR_Loop(%mini)
 				}
 			}
 			//get hud for observers
-			else if(!%client.noHud && isObject(%spyClient = %client.spyObj.client) && isObject(%minigame = %spyClient.minigame) && !%isReset)
+			else if(!%client.dataInstance($DR::SaveSlot).DR_NoHud && isObject(%spyClient = %client.spyObj.client) && isObject(%minigame = %spyClient.minigame) && !%isReset)
 			{
-				%hud = %spyClient.DR_hud;
+				%hud = %spyClient.DR_hudObject;
 			}
 
 			if(%hud)
@@ -212,13 +212,13 @@ package DeathRace_MinigameLoop
 
 	function GameConnection::onClientEnterGame(%c)
 	{
-		%c.DR_hud = Print_Create();
+		%c.DR_hudObject = Print_Create();
 		parent::onClientEnterGame(%c);
 	}
 
 	function GameConnection::onClientLeaveGame(%c)
 	{
-		%c.DR_hud.delete();
+		%c.DR_hudObject.delete();
 		parent::onClientLeaveGame(%c);
 	}
 
@@ -232,7 +232,7 @@ package DeathRace_MinigameLoop
 		%client = %mount.client;
 		if(isObject(%client))
 		{
-			%client.DR_hud.set($Hud::VehicleSong,"<just:Right>\c6Vehicle song: \c4" @ %song @ "\n ");
+			%client.DR_hudObject.set($Hud::VehicleSong,"<just:Right>\c6Vehicle song: \c4" @ %song @ "\n ");
 		}
 		%mount.setHud($Hud::VehicleSong,"<just:Right>\c6Vehicle song: \c4" @ %song @ "\n");
 		return parent::NewStereo_Set(%mount,%musicData);
@@ -245,7 +245,7 @@ package DeathRace_MinigameLoop
 		%client = %obj.client;
 		if(isObject(%client))
 		{
-			%client.DR_hud.set($Hud::HP,"<just:left>\c6Health: \c3" @ mCeil((%MaxHp - %damage) / %MaxHp * 100) @ "\c6%");
+			%client.DR_hudObject.set($Hud::HP,"<just:left>\c6Health: \c3" @ mCeil((%MaxHp - %damage) / %MaxHp * 100) @ "\c6%");
 		}
 		%obj.setHud($Hud::VehicleHP,"<just:Left>\c6Vehicle: \c3" @ mCeil((%MaxHp - %damage) / %MaxHp * 100) @ "\c6%");
 		//return parent::onDamage(%db,%obj,%damage);
@@ -254,15 +254,15 @@ package DeathRace_MinigameLoop
 	function GameConnection::SpawnPlayer(%c)
 	{
  		%r = parent::SpawnPlayer(%c);
-		%c.DR_hud.set($Hud::HP,"<just:left>\c6Health: \c3" @ mCeil(%c.player.getHealth() / %c.player.getMaxHealth() * 100) @ "\c6%");
-		%c.DR_hud.set($Hud::VehicleSong,"");
-		%c.DR_hud.set($Hud::VehicleHP,"");
+		%c.DR_hudObject.set($Hud::HP,"<just:left>\c6Health: \c3" @ mCeil(%c.player.getHealth() / %c.player.getMaxHealth() * 100) @ "\c6%");
+		%c.DR_hudObject.set($Hud::VehicleSong,"");
+		%c.DR_hudObject.set($Hud::VehicleHP,"");
 		return %r;
 	}
 
 	function GameConnection::SetScore(%c,%score)
 	{
-		%c.DR_hud.set($Hud::Score,"<just:left>\c6Score: \c3" @ %score);
+		%c.DR_hudObject.set($Hud::Score,"<just:left>\c6Score: \c3" @ %score);
 		return parent::SetScore(%c,%score);
 	}
 
@@ -292,8 +292,8 @@ package DeathRace_MinigameLoop
 			%c = %obj.client;
 			if(isObject(%c))
 			{
-				%c.DR_hud.set($Hud::VehicleSong,"<just:Right>\c6Vehicle song: \c4" @ %song @ "\n");
-				%c.DR_hud.set($Hud::VehicleHP,"<just:Left>\c6Vehicle: \c3" @ mCeil((%MaxHp - %damage) / %MaxHp * 100) @ "\c6%");
+				%c.DR_hudObject.set($Hud::VehicleSong,"<just:Right>\c6Vehicle song: \c4" @ %song @ "\n");
+				%c.DR_hudObject.set($Hud::VehicleHP,"<just:Left>\c6Vehicle: \c3" @ mCeil((%MaxHp - %damage) / %MaxHp * 100) @ "\c6%");
 			}
 		}
 		
@@ -311,8 +311,8 @@ package DeathRace_MinigameLoop
 		%c = %obj.client;
 		if(isObject(%c))
 		{
-			%c.DR_hud.set($Hud::VehicleSong,"");
-			%c.DR_hud.set($Hud::VehicleHP,"");
+			%c.DR_hudObject.set($Hud::VehicleSong,"");
+			%c.DR_hudObject.set($Hud::VehicleHP,"");
 		}
 
 		if(isObject(%base) && %base.isEnabled())

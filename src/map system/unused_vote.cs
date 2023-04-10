@@ -189,7 +189,7 @@ function MapChanger_EndVote(%mini) {
 		%client.alreadyVoted = "";
 		%client.displayCenterPrintMenu(0, "stop");
 
-		%client.noHud = %client.oldNoHud;
+		%client.dataInstance($DR::SaveSlot).DR_NoHud = %client.oldDR_NoHud;
 	}
 	
 	%score = "0 ?";
@@ -369,8 +369,8 @@ function MapChanger_StartNewMapVote(%this) {
 		
 		//if(isObject(%veh = %player.getObjectMount())) %veh.setVelocity("0 0 0");
 		//else %player.setVelocity("0 0 0");
-		%client.oldNoHud = %client.noHud;
-		%client.noHud    = 1;
+		%client.oldDR_NoHud = %client.dataInstance($DR::SaveSlot).DR_NoHud;
+		%client.dataInstance($DR::SaveSlot).DR_NoHud    = 1;
 		%client.alreadyVoted = "";
 		%client.schedule(1000, displayCenterPrintMenu, 0, strReplace(%mapListing, "%C%", %client));
 	}

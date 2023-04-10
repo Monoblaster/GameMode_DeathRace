@@ -123,32 +123,32 @@ function ServerAchievement::onCheck(%achievement, %client)
 
 			if(%name $= "kills")
 			{
-				if(%client.DR_totalKills >= %rewardAmt)
+				if(%client.dataInstance($DR::SaveSlot).DR_totalKills >= %rewardAmt)
 					%check++;
 			}
 			else if(%name $= "points")
 			{
-				if(%client.DR_totalPoints >= %rewardAmt)
+				if(%client.dataInstance($DR::SaveSlot).DR_totalPoints >= %rewardAmt)
 					%check++;
 			}
 			else if(%name $= "rounds")
 			{
-				if(%client.DR_totalRounds >= %rewardAmt)
+				if(%client.dataInstance($DR::SaveSlot).DR_totalRounds >= %rewardAmt)
 					%check++;
 			}
 			else if(%name $= "deaths")
 			{
-				if(%client.DR_totalDeaths >= %rewardAmt)
+				if(%client.dataInstance($DR::SaveSlot).DR_totalDeaths >= %rewardAmt)
 					%check++;
 			}
 			else if(%name $= "winsByButton")
 			{
-				if(%client.DR_totalWinsByButton >= %rewardAmt)
+				if(%client.dataInstance($DR::SaveSlot).DR_totalWinsByButton >= %rewardAmt)
 					%check++;
 			}
 			else if(%name $= "wins")
 			{
-				if(%client.DR_totalWins >= %rewardAmt)
+				if(%client.dataInstance($DR::SaveSlot).DR_totalWins >= %rewardAmt)
 					%check++;
 			}
 			else if(%name $= "playtime") // minutes
@@ -193,27 +193,27 @@ function ServerAchievement::onCheckDetail(%achievement, %client)
 			%tempStr = "";
 			if(%name $= "kills")
 			{
-				%tempStr = (%rewardAmt == 1 ? "kill" : "kills") @ " " @ %client.DR_totalKills @ " " @ %rewardAmt;
+				%tempStr = (%rewardAmt == 1 ? "kill" : "kills") @ " " @ %client.dataInstance($DR::SaveSlot).DR_totalKills @ " " @ %rewardAmt;
 			}
 			else if(%name $= "points")
 			{
-				%tempStr = (%rewardAmt == 1 ? "point" : "points") @ " " @ %client.DR_totalPoints @ " " @ %rewardAmt;
+				%tempStr = (%rewardAmt == 1 ? "point" : "points") @ " " @ %client.dataInstance($DR::SaveSlot).DR_totalPoints @ " " @ %rewardAmt;
 			}
 			else if(%name $= "rounds")
 			{
-				%tempStr = (%rewardAmt == 1 ? "round" : "rounds") @ " " @ %client.DR_totalRounds @ " " @ %rewardAmt;
+				%tempStr = (%rewardAmt == 1 ? "round" : "rounds") @ " " @ %client.dataInstance($DR::SaveSlot).DR_totalRounds @ " " @ %rewardAmt;
 			}
 			else if(%name $= "deaths")
 			{
-				%tempStr = (%rewardAmt == 1 ? "death" : "deaths") @ " " @ %client.DR_totalDeaths @ " " @ %rewardAmt;
+				%tempStr = (%rewardAmt == 1 ? "death" : "deaths") @ " " @ %client.dataInstance($DR::SaveSlot).DR_totalDeaths @ " " @ %rewardAmt;
 			}
 			else if(%name $= "winsByButton")
 			{
-				%tempStr = (%rewardAmt == 1 ? "win" : "wins") @ " " @ %client.DR_totalWinsByButton @ " " @ %rewardAmt;
+				%tempStr = (%rewardAmt == 1 ? "win" : "wins") @ " " @ %client.dataInstance($DR::SaveSlot).DR_totalWinsByButton @ " " @ %rewardAmt;
 			}
 			else if(%name $= "wins")
 			{
-				%tempStr = (%rewardAmt == 1 ? "win" : "wins") @ " " @ %client.DR_totalWins @ " " @ %rewardAmt;
+				%tempStr = (%rewardAmt == 1 ? "win" : "wins") @ " " @ %client.dataInstance($DR::SaveSlot).DR_totalWins @ " " @ %rewardAmt;
 			}
 			else if(%name $= "playtime") // minutes
 			{
@@ -278,12 +278,12 @@ function GameConnection::forceUnlockAchievement(%client, %name, %noBruteMsg)
 	%achTx = getSafeVariableName(%name);
 	%bl_id = %client.getBLID();
 
-	if($Server::AchievementsComplete[%bl_id, %achTx])
+	if(%client.dataInstance($DR::SaveSlot).AchievementComplete[%achTx])
 	{
 		return 1;
 	}
 
-	$Server::AchievementsComplete[%bl_id, %achTx] = 1;
+	%client.dataInstance($DR::SaveSlot).AchievementComplete[%achTx] = 1;
 
 	%rewardStrML = (%achievementObj.hasReward ? " \c6(Reward: \c3" @ %achievementObj.rewardTextML @ "\c6)" : "");
 	%rewardStr = (%achievementObj.hasReward ? " (Reward: " @ %achievementObj.rewardText @ ")" : "");
@@ -359,12 +359,12 @@ function GameConnection::lockAchievement(%client, %name)
 	%achTx = getSafeVariableName(%name);
 	%bl_id = %client.getBLID();
 
-	if(!$Server::AchievementsComplete[%bl_id, %achTx])
+	if(!%client.dataInstance($DR::SaveSlot).AchievementComplete[%achTx])
 	{
 		return 1;
 	}
 
-	$Server::AchievementsComplete[%bl_id, %achTx] = 0;
+	%client.dataInstance($DR::SaveSlot).AchievementComplete[%achTx] = 0;
 
 	if(%client.Shop_Client)
 	{
@@ -406,7 +406,7 @@ function GameConnection::unlockAchievement(%client, %name)
 	%achTx = getSafeVariableName(%name);
 	%bl_id = %client.getBLID();
 
-	if($Server::AchievementsComplete[%bl_id, %achTx])
+	if(%client.dataInstance($DR::SaveSlot).AchievementComplete[%achTx])
 	{
 		return 1;
 	}
@@ -416,7 +416,7 @@ function GameConnection::unlockAchievement(%client, %name)
 		return 0;
 	}
 
-	$Server::AchievementsComplete[%bl_id, %achTx] = 1;
+	%client.dataInstance($DR::SaveSlot).AchievementComplete[%achTx] = 1;
 
 	%rewardStrML = (%achievementObj.hasReward ? " \c6(Reward: \c3" @ %achievementObj.rewardTextML @ "\c6)" : "");
 	%rewardStr = (%achievementObj.hasReward ? " (Reward: " @ %achievementObj.rewardText @ ")" : "");
@@ -460,7 +460,6 @@ function GameConnection::unlockAchievement(%client, %name)
 		commandToClient(%client, 'DRShop', "AddAchievement", %name, %achTx, 1, %descriptionStr, %hidden, %secret, %reward, %detail, %achievementObj.getID());
 	}
 
-	export("$Server::AchievementsComplete" @ %client.getBLID() @ "*", "config/server/Achievements/" @ %client.getBLID() @ ".cs");
 	return 1;
 }
 

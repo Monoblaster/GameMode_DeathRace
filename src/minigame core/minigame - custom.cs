@@ -300,7 +300,7 @@ function CustomMinigameSO::Reset(%mini, %client)
 	{
 		%cl = %mini.member[%i];
 		%cl.setScore(%cl.oldscore);
-		%cl.DR_totalRounds++;
+		%cl.dataInstance($DR::SaveSlot).DR_totalRounds++;
 	}
 
 	%mini.onRoundStart();
@@ -443,7 +443,7 @@ function CustomMinigameSO::checkLastManStanding(%mini)
 			for(%i = 0; %i < %livingTeam.numMembers; %i++)
 			{
 				%member = %livingTeam.member[%i];
-				%member.DR_totalWins++;
+				%member.dataInstance($DR::SaveSlot).DR_totalWins++;
 			}
 
 			%mini.chatMessageAll(0, "<font:arial bold:22>\c6Team \c3" @ %livingTeam.colorHexStr @ %livingTeam.name @ " \c6won the match! Resetting!");

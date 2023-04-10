@@ -92,15 +92,15 @@ function DR_Leaderboard_Scan3(%outdated)
 function GameConnection::UpdateToLeaderboard(%client, %ignoreUpdate)
 {
 	%bl_id = %client.getBLID();
-	%scoreLead   = %client.DR_totalPoints * 0.7 + %client.DR_giveDamage * 0.3 + %client.DR_totalKills * 0.2 - %client.DR_totalDeaths * 0.5 + (%client.DR_totalRounds - %client.DR_totalWins) * 0.55 + %client.DR_totalItemsBought * 1 + %client.DR_PlayTime/60;
-	%fieldString = (%client.DR_totalPoints | 0) TAB 
-		(%client.DR_giveDamage | 0) TAB 
-		(%client.DR_totalKills | 0) TAB 
-		(%client.DR_totalDeaths | 0) TAB 
-		(%client.DR_totalWins | 0) TAB 
-		(%client.DR_totalRounds | 0) TAB 
-		(%client.DR_totalItemsBought | 0) TAB 
-		(%client.DR_PlayTime | 0) TAB 
+	%scoreLead   = %client.dataInstance($DR::SaveSlot).DR_totalPoints * 0.7 + %client.dataInstance($DR::SaveSlot).DR_giveDamage * 0.3 + %client.dataInstance($DR::SaveSlot).DR_totalKills * 0.2 - %client.dataInstance($DR::SaveSlot).DR_totalDeaths * 0.5 + (%client.dataInstance($DR::SaveSlot).DR_totalRounds - %client.dataInstance($DR::SaveSlot).DR_totalWins) * 0.55 + %client.dataInstance($DR::SaveSlot).DR_totalItemsBought * 1 + %client.dataInstance($DR::SaveSlot).DR_PlayTime/60;
+	%fieldString = (%client.dataInstance($DR::SaveSlot).DR_totalPoints | 0) TAB 
+		(%client.dataInstance($DR::SaveSlot).DR_giveDamage | 0) TAB 
+		(%client.dataInstance($DR::SaveSlot).DR_totalKills | 0) TAB 
+		(%client.dataInstance($DR::SaveSlot).DR_totalDeaths | 0) TAB 
+		(%client.dataInstance($DR::SaveSlot).DR_totalWins | 0) TAB 
+		(%client.dataInstance($DR::SaveSlot).DR_totalRounds | 0) TAB 
+		(%client.dataInstance($DR::SaveSlot).DR_totalItemsBought | 0) TAB 
+		(%client.dataInstance($DR::SaveSlot).DR_PlayTime | 0) TAB 
 		%scoreLead;
 
 	if(DR_LeaderboardList.getRowNumByID(%bl_id) >= 0)
