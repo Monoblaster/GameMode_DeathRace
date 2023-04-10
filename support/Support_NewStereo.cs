@@ -201,7 +201,7 @@ function serverCmdStereo(%client)
 			}
 	}
 
-	%client.newStereo_Menu = true;
+	%client.newStereo_MenuMount = %mount;
 	if(isObject(%mount.stereoHandler))
 	{
 		%mount.stereoHandler.sendWrenchSoundData(%client);
@@ -230,27 +230,53 @@ function serverCmdStereoHelp(%client)
 	%client.chatMessage("You may need to page up if you didn't see the \"Welcome\" message.");
 }
 
-function serverCmdStereoMe(%c)
+function serverCmdStereoMe(%c,%random)
 {
-	if(%c.isAdmin && isObject(%c.player))
+	%p = %c.player;
+
+	if(!isObject(%p) || !%c.isAdmin)
+		return;
+
+	if(!%random)
 	{
-		%musicData = NewStereo_GetRandom();
-		%c.chatMessage("playing" SPC %musicData.uiName);
-		NewStereo_Set(%c.player,%musicData);
+		%c.newStereo_MenuMount = %p;
+		if(isObject(%p.stereoHandler))
+		{
+			%p.stereoHandler.sendWrenchSoundData(%c);
+		}
+		else
+		{
+			NewStereo_Set(%p,"");
+		}
+		commandToClient(%c, 'openWrenchSoundDlg', "Vehicle Stereo", 1);
+		return;
 	}
+
+	if(MusicDataCache.itemCount <= 0)
+		return false;
+
+	%musicData = NewStereo_GetRandom();
+	NewStereo_Set(%p,%musicData);
+
+	%c.lastStereoMusic = %musicData;
+	%c.lastStereoMusicMount = %mount;
+	%p.MessageClients("\c7[\c4Vehicle\c7] \c1Randomized \c6- \c3" @ %c.getPlayerName() @ " \c6has changed the music to \c3" @ %musicData.uiName @ "\c6.");
+	return true;
 }
+
 
 package VehicleStereo
 {
 	function serverCmdSetWrenchData(%client, %data)
 	{
 		%player = %client.player;
-		if(%client.newStereo_Menu && isObject(%player))
+		%mount = %client.newStereo_MenuMount;
+		if(isObject(%mount) && isObject(%player))
 		{
-			%mount = %player.GetBaseMount();
+			%currMount = %player.GetBaseMount();
+			%client.newStereo_MenuMount = "";
 			%musicData = getWord(getField(%data,1),1);
-			%client.newStereo_Menu = false;
-			if(isObject(%mount) && %mount.getDataBlock().rideable && NewStereo_Menu(%mount,%client,%musicData))
+			if(%mount == %currMount && NewStereo_Menu(%mount,%client,%musicData))
 			{
 				return;
 			}
@@ -268,22 +294,30 @@ package VehicleStereo
 
 	function serverCmdLove(%c)
 	{
+		%p = %c.player;
+		if($VehicleStereoLoveBypass || !isObject(%p) || !isObject(%mount = %p.GetBaseMount()) || !%mount.getDataBlock().rideable)
+		{
+			$VehicleStereoLoveBypass = false;
+			return parent::serverCmdLove(%c);
+		}
+
 		if(!%c.doRandomStereo)
 		{
-			cancel(%c.disableRandomStereo);
+			cancel(%c.TimeoutRandomStereo);
 			%c.doRandomStereo = true;
-			%c.disableRandomStereo = %c.schedule(600, disableRandomStereo);
+			%c.TimeoutRandomStereo = %c.schedule(600, TimeoutRandomStereo);
+			return;
 		}
 		else
 		{
-			cancel(%c.disableRandomStereo);
+			cancel(%c.TimeoutRandomStereo);
 			%c.doRandomStereo = false;
 			if(serverCmdRandomStereo(%c))
 			{
 				return;
-			}	
+			}
 		}
-		parent::serverCmdLove(%c);
+		return parent::serverCmdLove(%c);
 	}
 
 	function serverCmdSit(%client)
@@ -302,7 +336,9 @@ package VehicleStereo
 };
 activatePackage(VehicleStereo);
 
-function GameConnection::disableRandomStereo(%this)
+function GameConnection::TimeoutRandomStereo(%this)
 {
-	%this.doRandomStereo = 1;
+	%this.doRandomStereo = false;
+	$VehicleStereoLoveBypass = true;
+	serverCmdLove(%this);
 }
