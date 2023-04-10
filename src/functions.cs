@@ -83,12 +83,11 @@ function ShapeBase::GetMountedObjects(%obj)
 
 function ShapeBase::MessageClients(%obj,%msg)
 {
-	%mounted = %obj.getMountedObjects() @ %obj;
+	%mounted = %obj.getMountedObjects() SPC %obj;
 	%count = getWordCount(%mounted);
 	for(%i = 0; %i < %count; %i++)
 	{
-		%player = getWord(%mounted,%i);
-		%client = %player.client;
+		%client = getWord(%mounted,%i).client;
 		if(isObject(%client))
 		{
 			%client.chatMessage(%msg);

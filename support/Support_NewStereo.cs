@@ -125,23 +125,27 @@ function NewStereo_Auto(%p)
 
 function NewStereo_Menu(%mount,%client,%musicData)
 {
-	NewStereo_Set(%mount,%musicData);
-
-	%musicName = %musicData.uiName;
-	%client.lastStereoMusic = %musicData;
-	%client.lastStereoMusicMount = %mount;
 	%message = " \c6has turned the stereo off.";
 	if(isObject(%musicData))
 	{
-		if(%musicName $= %brick.lastMusic)
+		if(%mount.stereoHandler.audioEmitter.profile.getId() == %musicData.getId())
 		{
-			return;
+			return true;
 		}
-		%message = " \c6has changed the music to \c3" @ %musicName @ "\c6.";
+		%message = " \c6has changed the music to \c3" @ %musicData.uiName @ "\c6.";
 	}
+	NewStereo_Set(%mount,%musicData);
+	%client.lastStereoMusic = %musicData;
+	%client.lastStereoMusicMount = %mount;
 
 	%mount.MessageClients("\c7[\c4Vehicle\c7] \c3" @ %client.getPlayerName() @ %message);
 	return true;
+}
+
+//this uses a object created within the gamemode
+function NewStereo_GetRandom()
+{
+	return %musicData = MusicDataCache.item[getRandom(0, MusicDataCache.itemCount-1)];
 }
 
 function serverCmdRandomStereo(%client)
@@ -168,16 +172,14 @@ function serverCmdRandomStereo(%client)
 
 	if($Sim::Time - %player.lastRandomMusicTime < 1.5)
 		return false;
-
 	%player.lastRandomMusicTime = $Sim::Time;
 	
-	%musicData = MusicDataCache.item[getRandom(0, MusicDataCache.itemCount-1)];
+	%musicData = NewStereo_GetRandom();
 	NewStereo_Set(%mount,%musicData);
 
-	%musicName = %musicData.uiName;
 	%client.lastStereoMusic = %musicData;
 	%client.lastStereoMusicMount = %mount;
-	%mount.MessageClients("\c7[\c4Vehicle\c7] \c1Randomized \c6- \c3" @ %client.getPlayerName() @ " \c6has changed the music to \c3" @ %musicName @ "\c6.");
+	%mount.MessageClients("\c7[\c4Vehicle\c7] \c1Randomized \c6- \c3" @ %client.getPlayerName() @ " \c6has changed the music to \c3" @ %musicData.uiName @ "\c6.");
 	return true;
 }
 
