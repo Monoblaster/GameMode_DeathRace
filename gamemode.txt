@@ -161,6 +161,7 @@ ADDON Emote_Confusion
 ADDON Emote_Hate
 ADDON Emote_Love
 ADDON Event_Vehicle
+ADDON Event_Zones
 ADDON Item_Fist
 ADDON Item_Key
 ADDON Item_Pill
