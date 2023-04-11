@@ -62,3 +62,12 @@ $Pref::Server::MaxPlayers = 48;
 
 HorseArmor.maxForwardSpeed = 30;
 gc_PumaVehicle.maxWheelSpeed = 30;
+
+//load music
+$file = findFirstFile("Add-ons/music/*.ogg");
+while(isFile($file))
+{
+	$GameMode::Music[$GameMode::MusicCount] = $file;
+	$GameMode::MusicCount += 1;
+	$file = findNextFile("Add-ons/music/*.ogg");
+}
