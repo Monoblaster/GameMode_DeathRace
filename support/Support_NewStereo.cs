@@ -294,7 +294,6 @@ package VehicleStereo
 
 	function serverCmdLove(%c)
 	{
-		%p = %c.player;
 		if($VehicleStereoLoveBypass || !isObject(%p) || !isObject(%mount = %p.GetBaseMount()) || !%mount.getDataBlock().rideable)
 		{
 			$VehicleStereoLoveBypass = false;

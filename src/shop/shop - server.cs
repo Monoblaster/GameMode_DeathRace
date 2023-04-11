@@ -964,7 +964,7 @@ function Player::Shop_Load(%this, %bypass)
 	if(%this.getState() $= "dead") return;
 	%client = %this.client;
 	if(!isObject(%client)) return;
-	if(isObject(%client.Shop_LoadFile)) {%client.Shop_LoadFile.close(); %client.Shop_LoadFile.delete();}
+
 
 	if(isObject(%mini = getMiniGameFromObject(%this)) && !%bypass)
 		if(%mini.DR_time <= 0)
@@ -975,23 +975,6 @@ function Player::Shop_Load(%this, %bypass)
 
 	if(%mini.noitems)
 		return;
-
-	%client.Shop_LoadFileCheck = new fileobject();
-	%client.Shop_LoadFileCheck.openforread("config/server/SavedItems/" @%client.getBLID() @ ".txt");
-	for(%h=0;%h<%this.getDatablock().maxTools;%h++)
-	{
-		%weapon = %client.Shop_LoadFileCheck.readLine();
-		if(isObject(%weapon))
-			%count++;
-	}
-	%client.Shop_LoadFileCheck.close();
-	%client.Shop_LoadFileCheck.delete();
-
-	if(%count <= 0)
-	{
-		%client.chatMessage("\c6You don't have any weapons to load!");
-		return;
-	}
 
 	%this.clearTools();
 
@@ -1020,8 +1003,7 @@ function Player::Shop_Load(%this, %bypass)
 			//	%this.addNewItem(%weapon);
 		}
 	}
-	%client.Shop_LoadFile.close();
-	%client.Shop_LoadFile.delete();
+
 	%client.chatMessage("\c6You have loaded your weapons.");
 }
 
