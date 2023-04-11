@@ -47,7 +47,7 @@ function ServerAchievement::onAdd(%achievement)
 		if(%client.Shop_Client)
 		{
 			%detail 		= %achievement.onCheckDetail(%client);
-			%unlocked 		= $Server::AchievementsComplete[%bl_id, %safeName];
+			%unlocked 		= %client.datainstance($DR::SaveSlot).AchievementComplete[%safeName];
 			
 			if(%hidden)
 			{
@@ -343,7 +343,6 @@ function GameConnection::forceUnlockAchievement(%client, %name, %noBruteMsg)
 		commandToClient(%client, 'DRShop', "AddAchievement", %name, %achTx, 1, %descriptionStr, %hidden, %secret, %reward, %detail, %ach.getID());
 	}
 
-	export("$Server::AchievementsComplete" @ %bl_id @ "*", "config/server/Achievements/" @ %bl_id @ ".cs");
 	return 1;
 }
 
@@ -389,8 +388,6 @@ function GameConnection::lockAchievement(%client, %name)
 
 		commandToClient(%client, 'DRShop', "AddAchievement", %name, %achTx, 0, %descriptionStr, %hidden, %secret, %reward, %detail, %achievementObj.getID());
 	}
-
-	export("$Server::AchievementsComplete" @ %client.getBLID() @ "*", "config/server/Achievements/" @ %client.getBLID() @ ".cs");
 	return 1;
 }
 
@@ -466,21 +463,6 @@ function GameConnection::unlockAchievement(%client, %name)
 if(isPackage("Server_Achievements"))
 	deactivatePackage("Server_Achievements");
 
-package Server_Achievements
-{
-	function GameConnection::autoAdminCheck(%client)
-	{
-		%bl_id = %client.getBLID();
-		if(isFile("config/server/Achievements/" @ %bl_id @ ".cs") && !$Server::Achievements::Loaded[%bl_id])
-		{
-			$Server::Achievements::Loaded[%bl_id] = 1;
-			exec("config/server/Achievements/" @ %bl_id @ ".cs");
-		}
-
-		return Parent::autoAdminCheck(%client);
-	}
-};
-activatePackage("Server_Achievements");
 
 function GameConnection::sendAchievements(%client, %clear)
 {
@@ -504,7 +486,7 @@ function GameConnection::sendAchievements(%client, %clear)
 		%reward 		= %ach.rewardText;
 
 		%detail 		= %ach.onCheckDetail(%client);
-		%unlocked 		= $Server::AchievementsComplete[%bl_id, %safeName];
+		%unlocked 		= %client.datainstance($DR::SaveSlot).AchievementComplete[%safeName];
 
 		if(%secret)
 		{
@@ -915,7 +897,7 @@ function serverCmdAchievements(%client)
 
 		%detail 		= %ach.onCheckDetail(%client);
 		%detailStr 		= "";
-		%unlocked 		= $Server::AchievementsComplete[%bl_id, %safeName];
+		%unlocked 		= %client.datainstance($DR::SaveSlot).AchievementComplete[%safeName];
 
 		if((%hidden || %secret) && !%unlocked)
 			%name = %ach.nameHidden;

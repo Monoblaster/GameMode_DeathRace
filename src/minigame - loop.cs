@@ -169,7 +169,7 @@ function ShapeBase::SetHud(%obj,%slot,%s)
 		%client = %player.client;
 		if(isObject(%client))
 		{
-			%client.DR_Hud.set(%slot,%s);
+			%client.DR_hudObject.set(%slot,%s);
 		}
 	}
 }

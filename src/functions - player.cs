@@ -94,23 +94,6 @@ package DeathRace_Player
 		%obj.invulnerable = false;
 		%obj.damage(%obj, %obj.getPosition(), 10000, $DamageType::Lava);
 	}
-
-	function fxDTSBrick::StartDeathRace(%this, %time, %client)
-	{
-		if(!isObject(%mini = getMiniGameFromObject(%this)))
-			return Parent::onEnterLiquid(%data, %obj, %coverage, %type);
-		
-		%count = %mini.numMembers;
-		for(%i = 0; %i < %count; %i++)
-		{
-			%member = %mini.member[%i];
-			if(isObject(%member))
-			{
-				%member.DeathRace_Save();
-			}
-		}
-		return Parent::onEnterLiquid(%data, %obj, %coverage, %type);
-	}
 };
 activatePackage(DeathRace_Player);
 
@@ -167,7 +150,7 @@ function GameConnection::DeathRace_Load(%this) {
 	if(%this.dataInstance($DR::SaveSlot).DR_MapGUI $= "")
 		%this.dataInstance($DR::SaveSlot).DR_MapGUI = 1;
 
-	%this.setScore(%this.dataInstance($DR::SaveSlot).DR_Score);
+	%this.setScore(%this.dataInstance($DR::SaveSlot).DR_Score + 0);
 
 	%bl_id = %this.getBLID();
 

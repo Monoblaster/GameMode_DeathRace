@@ -1,5 +1,5 @@
 // DeathRace file
-
+$DR::SaveSlot = 1;
 registerInputEvent("fxDTSBrick", "onBotTouch", "Self fxDTSBrick" TAB "Bot Bot" TAB "Player Player" TAB "Client GameConnection" TAB "MiniGame MiniGame");
 registerOutputEvent("Player", "addNewItem","string 50 50");
 

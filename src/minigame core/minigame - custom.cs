@@ -151,7 +151,8 @@ function CustomMinigameSO::Reset(%mini, %client)
 		else
 			%mini.round = 1;
 	}
-	// else if(!isEventPending($Temp::MapSys_TickSch) && ($Pref::Server::MapSys_VoteType == 2 || $Pref::Server::MapSys_VoteType == 3)) //Start the tick if VoteType is 2/3
+	// else if(!isEventPending($Temp::MapSys_TickSch) && ($Pref::Server::MapSys_VoteType == 2 || 
+	//$Pref::Server::MapSys_VoteType == 3)) //Start the tick if VoteType is 2/3
 	// {
 	//	%minigame.round = 0;
 	//	MapSys_Loop($Pref::Server::MapSys_MapTimeLimit);
@@ -277,20 +278,27 @@ function CustomMinigameSO::Reset(%mini, %client)
 	}
 
 	if(%mini.maxRounds != -1)
-		%mini.messageAll('', "\c6" @ (%mini.lives >= 1 ? "[\c3Minigame - " @ %mini.lives @ " " @ (%mini.lives == 1 ? "Life" : "Lives") @ "\c6] " : "[\c3Minigame\c6] ") @ %mini.displayName @ " - \c3" @ %specialStr @ %mini.modeName @ %voteMsg);
+		%mini.messageAll('', "\c6" @ (%mini.lives >= 1 ? "[\c3Minigame - " @ %mini.lives @ " " 
+		@ (%mini.lives == 1 ? "Life" : "Lives") @ "\c6] " : "[\c3Minigame\c6] ") @ %mini.displayName @ " - \c3" @ %specialStr @ %mini.modeName @ %voteMsg);
 	else
-		%mini.messageAll('', "\c6" @ (%mini.lives >= 1 ? "[\c3Minigame - " @ %mini.lives @ " " @ (%mini.lives == 1 ? "Life" : "Lives") @ "\c6] " : "[\c3Minigame\c6] ") @ %mini.displayName @ " (Round \c3" @ %mini.round @ "\c6/\c3" @ %mini.maxRounds @"\c6) - \c3" @ %specialStr @ %mini.modeName @ %voteMsg);
+		%mini.messageAll('', "\c6" @ (%mini.lives >= 1 ? "[\c3Minigame - " @ %mini.lives 
+		@ " " @ (%mini.lives == 1 ? "Life" : "Lives") @ "\c6] " : "[\c3Minigame\c6] ") @ %mini.displayName @ " (Round \c3" @ %mini.round 
+		@ "\c6/\c3" @ %mini.maxRounds @"\c6) - \c3" @ %specialStr @ %mini.modeName @ %voteMsg);
 
 	for(%i = 0; %i < %mini.numMembers; %i++)
 	{
 		%cl = %mini.member[%i];
 		%cl.roundKills = 0;
 		%cl.roundPoints = 0;
-		%cl.oldscore = %cl.score;
 	}
 
 	%mini.onPreRoundStart();
 	%mini.mode.onPreRoundStart(%mini);
+
+	for(%i = 0; %i < %mini.numMembers; %i++)
+	{
+		%mini.member[%i].Deathrace_Save();
+	}
 
 	%p = Parent::Reset(%mini, %client);
 
@@ -299,7 +307,7 @@ function CustomMinigameSO::Reset(%mini, %client)
 	for(%i = 0; %i < %mini.numMembers; %i++)
 	{
 		%cl = %mini.member[%i];
-		%cl.setScore(%cl.oldscore);
+		%cl.Deathrace_Load();
 		%cl.dataInstance($DR::SaveSlot).DR_totalRounds++;
 	}
 

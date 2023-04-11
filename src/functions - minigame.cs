@@ -11,48 +11,37 @@ package DeathRace_Minigame
 
 	function GameConnection::AutoAdminCheck(%client)
 	{
+		%r = Parent::AutoAdminCheck(%client);
+
 		%client.DeathRace_Load();
-		return Parent::AutoAdminCheck(%client);
+
+		return %r;
 	}
 
 	function GameConnection::onClientLeaveGame(%client)
 	{
-		if(%client.hasSpawnedOnce)
-		{
-			%client.DeathRace_Save();
-		}
-
 		return Parent::onClientLeaveGame(%client);
 	}
 	
 	function MiniGameSO::addMember(%this, %member)
 	{
-		if(!%member.hasLoadedDR)
-		{
-			%member.score = %member.loadscore;
-			%member.hasLoadedDR = 1;
-		}
-
 		if(%member.unlockTitle("V8 Beta") == 1)
 		{
 			%member.unlockTitle("V8 Beta"); // remove after beta
 			%member.chatMessage("\c6Welcome! Thank you for being a beta test for Deathrace. We really appreciate that you are helping out and finding bugs/issues we could not find ourselves.");
 		}
 
-		%member.oldscore = %member.score;
 		Parent::addMember(%this, %member);
-		%member.setscore(%member.oldscore);
+		%member.Deathrace_Load();
 		
 		%member.TotalPlayTime = $Sim::time;
 	}
 	
 	function MiniGameSO::removeMember(%this, %member)
 	{
-		%member.oldscore = %member.score;
-		%this.dataInstance($DR::SaveSlot).DR_PlayTime += ($Sim::Time - %this.TotalPlayTime);
-		%this.TotalPlayTime = $Sim::Time;
+		%member.DeathRace_Save();
+		%member.TotalPlayTime = $Sim::Time;
 		Parent::removeMember(%this, %member);
-		%member.setscore(%member.oldscore);
 	}
 
 	function GameConnection::onDeath(%this, %killerObj, %killerClient, %damageType, %position)

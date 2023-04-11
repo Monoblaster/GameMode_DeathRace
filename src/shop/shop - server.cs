@@ -1009,8 +1009,8 @@ function Player::Shop_Load(%this, %bypass)
 					%shopObj.canSave = 1;
 					
 					%weapon = nameToID(%weapon);
-					%player.tool[%i] = %weapon;
-					%player.weaponCount++;
+					%this.tool[%i] = %weapon;
+					%this.weaponCount++;
 					messageClient(%client,'MsgItemPickup','',%i,%weapon,true);
 				}
 				else
@@ -1135,7 +1135,7 @@ function GameConnection::RequestItem(%this,%item,%time)
 	%strName = stripChars(%groupObj.uiName, $Shop::Chars);
 	%strName = strReplace(%strName, " ", "_");
 
-	if(%this.dataIntsance($DR::SaveSlot).boughtItem[%strName] || %groupObj.cost <= 0)
+	if(%this.dataInstance($DR::SaveSlot).boughtItem[%strName] || %groupObj.cost <= 0)
 	{
 		%this.BuyItem(%groupObj.uiName, %time);
 		return;
@@ -1184,28 +1184,28 @@ function GameConnection::BuyItem(%this,%item,%time)
 
 	if(!%groupObj.buyOnce)
 	{
-		%this.dataIntsance($DR::SaveSlot).boughtItem[%strName] = 0;
-		commandToClient(%this, 'DRShop', "SET_BOUGHT", %groupObj.uiName, %this.dataIntsance($DR::SaveSlot).boughtItem[%strName]);
+		%this.dataInstance($DR::SaveSlot).boughtItem[%strName] = 0;
+		commandToClient(%this, 'DRShop', "SET_BOUGHT", %groupObj.uiName, %this.dataInstance($DR::SaveSlot).boughtItem[%strName]);
 	}
 
 	if(%time < 1) %time = 3;
 	%adminLevel = 0 + %this.isSuperAdmin + %this.isAdmin;
-	if(%adminLevel < %groupObj.adminLevel && !%this.dataIntsance($DR::SaveSlot).boughtItem[%strName])
+	if(%adminLevel < %groupObj.adminLevel && !%this.dataInstance($DR::SaveSlot).boughtItem[%strName])
 	{
 		%this.centerPrint("<font:impact:20>ERROR: You cannot purchase this item at this time.",%time);
 		return -1;
 	}
 
-	if(%this.getScore() < %groupObj.cost && !%this.dataIntsance($DR::SaveSlot).boughtItem[%strName] && !%this.bypassShop && %groupObj.cost > 0)
+	if(%this.getScore() < %groupObj.cost && !%this.dataInstance($DR::SaveSlot).boughtItem[%strName] && !%this.bypassShop && %groupObj.cost > 0)
 	{
 		if(%this.Shop_Client) commandToClient(%this,'DRShop_MessageBoxOK',"Shop - ERROR","Not enough points!");
 		%this.chatMessage("<font:impact:20>ERROR: Not enough points!");
 		return;
 	}
-	if(!%this.dataIntsance($DR::SaveSlot).boughtItem[%strName] && !%this.bypassShop)
+	if(!%this.dataInstance($DR::SaveSlot).boughtItem[%strName] && !%this.bypassShop)
 		%this.incScore(-%groupObj.cost);
 
-	if(%this.dataIntsance($DR::SaveSlot).boughtItem[%strName])
+	if(%this.dataInstance($DR::SaveSlot).boughtItem[%strName])
 	{
 		if(isObject(%pl=%this.player))
 			if(%pl.addNewItem(%obj.uiName)) %this.chatMessage("\c3" @ %obj.uiname @ "\c6 added to your inventory.");
@@ -1215,7 +1215,7 @@ function GameConnection::BuyItem(%this,%item,%time)
 
 	if(%groupObj.buyOnce)
 	{
-		%this.dataIntsance($DR::SaveSlot).boughtItem[%strName] = 1;
+		%this.dataInstance($DR::SaveSlot).boughtItem[%strName] = 1;
 		if(%groupObj.cost > 0) %this.chatMessage("\c6You have bought this item: \c4" @ %groupObj.uiName @ "\c6, you now equip it! You do not ever have to buy this weapon again, yay!");
 	}
 
@@ -1223,7 +1223,7 @@ function GameConnection::BuyItem(%this,%item,%time)
 		if(%pl.addNewItem(%obj.uiName))
 			%this.chatMessage("\c3" @ %obj.uiname @ "\c6 added to your inventory.");
 
-	commandToClient(%this, 'DRShop', "SET_BOUGHT", %groupObj.uiName, %this.dataIntsance($DR::SaveSlot).boughtItem[%strName]);
+	commandToClient(%this, 'DRShop', "SET_BOUGHT", %groupObj.uiName, %this.dataInstance($DR::SaveSlot).boughtItem[%strName]);
 }
 
 function GameConnection::BuyOldItem(%this, %item, %doNotEquip)
@@ -1243,7 +1243,7 @@ function GameConnection::BuyOldItem(%this, %item, %doNotEquip)
 			%strName = stripChars(%newItem.uiName, $Shop::Chars);
 			%strName = strReplace(%strName, " ", "_");
 
-			%this.dataIntsance($DR::SaveSlot).boughtItem[%strName] = 1;
+			%this.dataInstance($DR::SaveSlot).boughtItem[%strName] = 1;
 			commandToClient(%this, 'DRShop', "SET_BOUGHT", %newItem.uiName, 1);
 			if(!%doNotEquip)
 				%this.BuyItem(%newItem.uiName);
@@ -1268,14 +1268,14 @@ function GameConnection::DisplayItem(%this,%item,%time)
 
 		if(%time < 1) %time = 3;
 		%adminLevel = 0 + %this.isSuperAdmin + %this.isAdmin;
-		if(%adminLevel < %groupObj.adminLevel && !%this.dataIntsance($DR::SaveSlot).boughtItem[%strName]) 
+		if(%adminLevel < %groupObj.adminLevel && !%this.dataInstance($DR::SaveSlot).boughtItem[%strName]) 
 		{
 			%this.centerPrint("<font:impact:20>ERROR: This item cannot be displayed to you.",%time);
 			return 0;
 		}
 		%cost = %groupObj.cost;
 		if(%cost == 0) %cost = "FREE";
-		else if(%this.dataIntsance($DR::SaveSlot).boughtItem[%strName]) %cost = "\c3Already bought";
+		else if(%this.dataInstance($DR::SaveSlot).boughtItem[%strName]) %cost = "\c3Already bought";
 		else %cost = %cost @ " Points";
 		%costCol = "\c2";
 		if(%this.getScore() < %cost) %costCol = "\c0";
@@ -1295,19 +1295,19 @@ function GameConnection::DisplayItem(%this,%item,%time)
 	%strName = stripChars(%groupObj.uiName, $Shop::Chars);
 	%strName = strReplace(%strName, " ", "_");
 
-	if(%this.dataInstance($DR::SaveSlot).boughtItem[%obj.getName()] && !%this.dataIntsance($DR::SaveSlot).boughtItem[%strName])
+	if(%this.dataInstance($DR::SaveSlot).boughtItem[%obj.getName()] && !%this.dataInstance($DR::SaveSlot).boughtItem[%strName])
 		%this.BuyOldItem(%obj.getName(), 1);
 
 	if(%time < 1) %time = 3;
 	%adminLevel = 0 + %this.isSuperAdmin + %this.isAdmin;
-	if(%adminLevel < %groupObj.adminLevel && !%this.dataIntsance($DR::SaveSlot).boughtItem[%strName]) 
+	if(%adminLevel < %groupObj.adminLevel && !%this.dataInstance($DR::SaveSlot).boughtItem[%strName]) 
 	{
 		%this.centerPrint("<font:impact:20>ERROR: This item cannot be displayed to you.",%time);
 		return 0;
 	}
 	%cost = %groupObj.cost;
 	if(%cost == 0) %cost = "FREE";
-	else if(%this.dataIntsance($DR::SaveSlot).boughtItem[%strName]) %cost = "\c3Already bought";
+	else if(%this.dataInstance($DR::SaveSlot).boughtItem[%strName]) %cost = "\c3Already bought";
 	else %cost = %cost @ " Points";
 	%costCol = "\c2";
 	if(%this.getScore() < %cost) %costCol = "\c0";

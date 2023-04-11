@@ -138,7 +138,7 @@ function GameConnection::Shop_SendSingleData(%this, %obj)
 				%obj.description,
 				mFloor(%obj.damage) TAB mFloor(%obj.radiusDamage),
 				%obj.image TAB %obj.imageColor,
-				mFloor(%this.dataIntsance($DR::SaveSlot).boughtItem[%strName]) TAB mFloor(%obj.buyOnce),
+				mFloor(%this.dataInstance($DR::SaveSlot).boughtItem[%strName]) TAB mFloor(%obj.buyOnce),
 				mFloor(%obj.adminLevel) TAB mFloor(%obj.canSave) TAB mFloor(%obj.cannotModify) TAB %obj.shopClass,
 				(%obj.datablockName $= "" ? nameToID(%obj) : nameToID(findItemByName(%obj.datablockName))));
 		}
@@ -179,7 +179,7 @@ function GameConnection::Shop_SendData(%this, %avoidReset)
 		if(%obj.uiName !$= "")
 		{
 			%strName = getSafeVariableName(%obj.uiName);
-			%bought = mFloor(%this.dataIntsance($DR::SaveSlot).boughtItem[%strName]);
+			%bought = mFloor(%this.dataInstance($DR::SaveSlot).boughtItem[%strName]);
 			if(%bought)
 				%boughtItems++;
 
