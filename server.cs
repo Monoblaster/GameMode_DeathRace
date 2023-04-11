@@ -118,13 +118,21 @@ function createGameModeMusicDataBlocks ()
 	}
 }
 
+
+$MusicBlackList = " Ambient_Deep Bass_1 Bass_2 Bass_3 Creepy Distort Drums Factory Icy"@
+" Jungle Peaceful Piano_Bass Rock Stress_ Vartan_-_Death Paprika_-_Byakko_no ";
 //load music
 $GameMode::MusicCount = 0;
 $file = findFirstFile("Add-ons/music/*.ogg");
 while(isFile($file))
 {
-	$GameMode::Music[$GameMode::MusicCount] = fileBase($file);
-	$GameMode::MusicCount += 1;
+	$base = fileBase($file);
+	if(StriPos($MusicBlackList, "" SPC $base SPC "") < 0)
+	{
+		$GameMode::Music[$GameMode::MusicCount] = $base;
+		$GameMode::MusicCount += 1;
+	}
+	
 	$file = findNextFile("Add-ons/music/*.ogg");
 }
 createGameModeMusicDataBlocks();
