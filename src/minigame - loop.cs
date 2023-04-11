@@ -23,6 +23,7 @@ function MinigameSO::DR_Loop(%mini)
 	%avoidCheck = %mini.avoidVehicleDeathCheck;
 	%isStarting = %mini.isStartingDR;
 
+	%usingTimer = false || %isStarting;
 	// loop through everyone
 	%count = %mini.numMembers;
 	for(%i = 0; %i < %count; %i++)
@@ -58,14 +59,8 @@ function MinigameSO::DR_Loop(%mini)
 									%vehicleTimeDeath = mFloor(%vehicle.VehicleAfkTimer);
 									if(%vehicleTimeDeath < %deathrace_vehicleExplodeTime)
 									{
-										cancel(%vehicle.shapeNameSch);
-										%vehicle.shapeNameSch = %vehicle.schedule(3000, setShapeName, "");
-										%vehicle.setShapeName("'AFK', exploding in " @ (%deathrace_vehicleExplodeTime - %vehicleTimeDeath) @ "s");
-										%vehicle.setShapeNameDistance(%shapeNameDistance);
-										if(isObject(%vehicle.client))
-										{
-											%vehicle.client.bottomPrint("\c6'AFK', exploding in " @ (%deathrace_vehicleExplodeTime - %vehicleTimeDeath) @ "s",true,%loopTime * 2 / 1000);
-										}
+										%usingTimer = true;
+										%vehicle.setHud($Hud::Time,"<Just:Right>Exploding in " @ getTimeString(mCeil(%deathrace_vehicleExplodeTime - %vehicleTimeDeath)) @ "\n");
 									}
 
 									if(%vehicleTimeDeath > %deathrace_vehicleExplodeTime)
@@ -93,10 +88,16 @@ function MinigameSO::DR_Loop(%mini)
 								{
 									%player.addHealth(-24);
 								}
-								
-								%client.bottomPrint("<just:center><font:" @ %font @ ":22>\c6You need to get back in your vehicle!\n\c6Time: \c3" @ getTimeString(mCeil(%maxOOVT - %OOVT)), 2, 1);
+								%usingTimer = true;
+								%client.DR_hudObject.set($Hud::Time, "<Just:Right>Dying in " @ getTimeString(mCeil(%maxOOVT - %OOVT)) @ "\n");
+								//%client.bottomPrint("<just:center><font:" @ %font @ ":22>\c6You need to get back in your vehicle!\n\c6Time: \c3" @ , 2, 1);
 							}
 						}
+					}
+
+					if(!%usingTimer)
+					{
+						%client.DR_hudObject.set($Hud::Time, "\n");
 					}
 
 					// healing over time
