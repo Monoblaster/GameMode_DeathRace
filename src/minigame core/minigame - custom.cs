@@ -132,7 +132,6 @@ function CustomMinigameSO::Reset(%mini, %client)
 		return Parent::Reset(%mini, %client);
 	}
 
-	%mini.resetting = 0;
 
 	%mini.round++;
 	if($Pref::Server::MapSys_VoteType == 1 && %mini.maxRounds != -1 && %mini.round > %mini.maxRounds)
@@ -317,6 +316,7 @@ function CustomMinigameSO::Reset(%mini, %client)
 	if(isObject(%special = %mini.special))
 		%special.onRoundStart(%mini);
 
+	%mini.resetting = 0;
 	return %p;
 }
 
