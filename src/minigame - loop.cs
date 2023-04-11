@@ -162,15 +162,14 @@ $Hud::Score = 4;
 
 function ShapeBase::SetHud(%obj,%slot,%s)
 {
-	%mounted = %obj.getMountedObjects();
+	%mounted = %obj.getMountedObjects() SPC %obj;
 	%count = getWordCount(%mounted);
 	for(%i = 0; %i < %count; %i++)
 	{
-		%player = getWord(%mounted,%i);
-		%client = %player.client;
-		if(isObject(%client))
+		%hud = getWord(%mounted,%i).client.DR_hudObject;
+		if(isObject(%hud))
 		{
-			%client.DR_hudObject.set(%slot,%s);
+			%hud.set(%slot,%s);
 		}
 	}
 }
