@@ -162,7 +162,7 @@ function GameConnection::DeathRace_Load(%this) {
 			%this.unlockTitle(%titleObj);
 	}
 
-	if(isObject(%title = Server_TitleGroup.find(%this.dataInstance($DR::SaveSlot).title[%bl_id])))
+	if(isObject(%title = Server_TitleGroup.find(%this.dataInstance($DR::SaveSlot).title)))
 		%this.setTitle(%title, 1);
 
 	echo("'" @ %this.name @ "' profile has been loaded.");
