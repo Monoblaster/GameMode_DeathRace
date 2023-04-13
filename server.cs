@@ -16,6 +16,7 @@ exec("add-ons/GameMode_DeathRace/support/Support_SimObject.cs");
 exec("add-ons/GameMode_DeathRace/support/Support_SpeedFactor.cs");
 exec("add-ons/GameMode_DeathRace/support/print.cs");
 exec("add-ons/GameMode_DeathRace/support/datainstance.cs");
+exec("add-ons/GameMode_DeathRace/support/inventoryv2.cs");
 
 exec("add-ons/GameMode_DeathRace/src/prefs.cs");
 exec("add-ons/GameMode_DeathRace/src/packages.cs");

@@ -958,13 +958,14 @@ function GameConnection::Shop_PlayerUpgrades(%this, %command)
 	%this.TempDR_Shop = 0;
 }
 
-function Player::Shop_Load(%this, %bypass)
+function Player::Shop_Load(%this, %bypass,%index)
 {
 	if(!isObject(%this)) return;
 	if(%this.getState() $= "dead") return;
 	%client = %this.client;
 	if(!isObject(%client)) return;
 
+	%index += 0;
 
 	if(isObject(%mini = getMiniGameFromObject(%this)) && !%bypass)
 		if(%mini.DR_time <= 0)
@@ -978,7 +979,7 @@ function Player::Shop_Load(%this, %bypass)
 
 	%this.clearTools();
 
-	%s = %client.dataInstance($DR::SaveSlot).savedLoadout[0];
+	%s = %client.dataInstance($DR::SaveSlot).savedLoadout[%index];
 	%count = getWordCount(%s);
 	for(%i=0; %i < %count; %i++)
 	{
@@ -1007,7 +1008,7 @@ function Player::Shop_Load(%this, %bypass)
 	%client.chatMessage("\c6You have loaded your weapons.");
 }
 
-function Player::Shop_Save(%this)
+function Player::Shop_Save(%this,%index)
 {
 	if(!isObject(%this)) return;
 	if(%this.getState() $= "dead") return;
@@ -1015,6 +1016,7 @@ function Player::Shop_Save(%this)
 	if(!isObject(%client)) return;
 	if(isObject(%client.Shop_SaveFile)) {%client.Shop_SaveFile.close(); %client.Shop_SaveFile.delete();}
 
+	%index += 0;
 	for(%j = 0;%j < %this.getDatablock().maxTools; %j++)
 		if(isObject(%this.tool[%j])) %count++;
 
@@ -1053,7 +1055,7 @@ function Player::Shop_Save(%this)
 			//	%client.Shop_SaveFile.writeLine(%weapon);
 		}
 	}
-	%client.dataInstance($DR::SaveSlot).savedLoadout[0] = trim(%s);
+	%client.dataInstance($DR::SaveSlot).savedLoadout[%index] = trim(%s);
 
 	%client.chatMessage("\c6You have saved your weapons.");
 	if(%cannotSaveCount > 0)

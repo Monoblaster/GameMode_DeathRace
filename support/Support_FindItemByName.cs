@@ -115,7 +115,7 @@ function Player::addNewItem(%player, %item, %silent)
 	else
 		%item = findItemByName(%item);
 	if(!isObject(%item)) return -1;
-	%item = nameToID(%item);
+	%item = %item.getid();
 	for(%i = 0; %i < %player.getDatablock().maxTools; %i++)
 	{
 		%tool = %player.tool[%i];

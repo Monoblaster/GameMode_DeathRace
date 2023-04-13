@@ -13,7 +13,6 @@ function MinigameSO::DR_Loop(%mini)
 	%curTime = $Sim::Time;
 
 	// some local vars
-	%isReset = isEventPending(%mini.resetSchedule);
 	%isCustom = %mini.isCustomMini;
 	%font = $Pref::Server::DRFont;
 	%deathrace_maxtime = %mini.deathRaceMaxTime;
@@ -22,31 +21,30 @@ function MinigameSO::DR_Loop(%mini)
 	%deathrace_time = mCeil(%mini.deathRaceMaxTime - ((getSimTime() - %mini.lastDeathRaceReset) / 1000));
 	%avoidCheck = %mini.avoidVehicleDeathCheck;
 	%isStarting = %mini.isStartingDR;
+	%isResetting = %mini.resetting;
 
-	%usingTimer = false || %isStarting;
+	
 	// loop through everyone
 	%count = %mini.numMembers;
 	for(%i = 0; %i < %count; %i++)
 	{
+		%usingTimer = false || %isStarting;
 		%client = %mini.member[%i];
 		if(isObject(%client))
 		{
 			%hud = "";
-
-			if(isObject(%player = %client.player) && %player.isEnabled() && !%isReset)
+			%noHud = %client.dataInstance($DR::SaveSlot).DR_NoHud || %isResetting;
+			if(isObject(%player = %client.player) && %player.isEnabled())
 			{
+				%hud = %client.DR_HudObject;
 				%OOVT = %player.OutOfVehicleTimer;
 				%maxOOVT = %player.maxOutOfVehicleTimer;
 				%vehicle = %player.getBaseMount();
-				if(!%client.dataInstance($DR::SaveSlot).DR_NoHud)
-				{
-					%hud = %client.DR_hudObject;
-				}
 
 				if((%curTime - %player.lastTick) > 1)
 				{
 					//doesn't happen before start
-					if(!%isStarting)
+					if(!%isStarting && !%isResetting)
 					{
 						//player is in a vehicle
 						if(isObject(%vehicle) && %vehicle.isEnabled() && %vehicle.getDatablock().rideAble)
@@ -132,7 +130,7 @@ function MinigameSO::DR_Loop(%mini)
 				}
 			}
 			//get hud for observers
-			else if(!%client.dataInstance($DR::SaveSlot).DR_NoHud && isObject(%spyClient = %client.spyObj.client) && isObject(%minigame = %spyClient.minigame) && !%isReset)
+			else if(!%noHud && isObject(%spyClient = %client.spyObj.client))
 			{
 				%hud = %spyClient.DR_hudObject;
 			}
@@ -160,14 +158,15 @@ $Hud::VehicleHP = 2;
 $Hud::VehicleSong = 3;
 $Hud::Score = 4;
 
-function ShapeBase::SetHud(%obj,%slot,%s)
+function ShapeBase::SetHud(%obj,%slot,%s,%ignore)
 {
 	%mounted = %obj.getMountedObjects() SPC %obj;
 	%count = getWordCount(%mounted);
 	for(%i = 0; %i < %count; %i++)
 	{
-		%hud = getWord(%mounted,%i).client.DR_hudObject;
-		if(isObject(%hud))
+		%client = getWord(%mounted,%i).client;
+		%hud = %client.DR_hudObject;
+		if(isObject(%hud) && %client != %ignore)
 		{
 			%hud.set(%slot,%s);
 		}
@@ -247,7 +246,7 @@ package DeathRace_MinigameLoop
 		{
 			%client.DR_hudObject.set($Hud::HP,"<just:left>\c6Health: \c3" @ mCeil((%MaxHp - %damage) / %MaxHp * 100) @ "\c6%");
 		}
-		%obj.setHud($Hud::VehicleHP,"<just:Left>\c6Vehicle: \c3" @ mCeil((%MaxHp - %damage) / %MaxHp * 100) @ "\c6%");
+		%obj.setHud($Hud::VehicleHP,"<just:Left>\c6Vehicle: \c3" @ mCeil((%MaxHp - %damage) / %MaxHp * 100) @ "\c6%",%client);
 		//return parent::onDamage(%db,%obj,%damage);
 	}	
 

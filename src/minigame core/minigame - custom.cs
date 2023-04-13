@@ -411,9 +411,6 @@ function CustomMinigameSO::timeLimitTick(%mini, %echo)
 
 		if(%timeLeft >= 10)
 			%mini.messageAll('', "\c3" @ %timeStr @ " \c6remaining.");
-		
-		if(%timeLeft <= 10)
-			%mini.centerPrintAll("<font:impact:20>\c3Finish up the round!<font:impact:24>\n\c5" @ %timeLeft, 1.1);
 	}
 }
 

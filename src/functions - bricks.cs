@@ -462,7 +462,7 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 	}
 	else
 	{
-		%string = getTimeString(mCeil(%mini.deathRaceMaxTime - ((getSimTime() - %mini.lastDeathRaceReset) / 1000)));
+		%string = getTimeString(mCeil(%mini.dr_time));
 		%count = %mini.numMembers;
 		for(%i = 0; %i < %count; %i++)
 		{
