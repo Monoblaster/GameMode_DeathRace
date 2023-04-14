@@ -300,19 +300,20 @@ function serverCmdDRShop(%this, %option, %cmd1, %cmd2, %cmd3, %cmd4, %cmd5, %cmd
 			commandToClient(%this, 'DRShop', "SetProfile", "WinsByButton", %this.dataInstance($DR::SaveSlot).DR_totalWinsByButton | 0);
 			commandToClient(%this, 'DRShop', "SetProfile", "Wins", %this.dataInstance($DR::SaveSlot).DR_totalWins | 0);
 
-		case "SAVE":
-			%this.Shop_Save();
+		// case "SAVE":
+		
+		// 	%this.Shop_Save();
 
-		case "LOAD":
-			if(!%this.minigame.noitems)
-				%this.Shop_Load();
+		// case "LOAD":
+		// 	if(!%this.minigame.noitems)
+		// 		%this.Shop_Load();
 
-		case "AUTOLOAD":
-			%this.Shop_AutoLoad();
+		// case "AUTOLOAD":
+		// 	%this.Shop_AutoLoad();
 
-		case "BUY":
-			if(!%this.minigame.noitems)
-				%this.RequestItem(%cmd1, 5);
+		// case "BUY":
+		// 	if(!%this.minigame.noitems)
+		// 		%this.RequestItem(%cmd1, 5);
 
 		case "DISPLAY":
 			%this.DisplayItem(%cmd1, 5);
@@ -956,6 +957,32 @@ function GameConnection::Shop_PlayerUpgrades(%this, %command)
 		%this.incScore(-mAbs(%this.TempDR_Shop));
 
 	%this.TempDR_Shop = 0;
+}
+
+function Player::Shop_LoadList(%this,%list)
+{
+	if(%this.isDisabled()) return;
+	%client = %this.client;
+	if(!isObject(%client)) return;
+
+	%this.clearTools();
+
+	%s = %list;
+	%count = getWordCount(%s);
+	for(%i=0; %i < %count; %i++)
+	{
+		%weapon = getWord(%s,%i);
+		if(isObject(%weapon))
+		{
+			if(isObject(%shopObj = getDRShopGroup().findScript(%weapon.uiName)))
+			{
+				%weapon = nameToID(%weapon);
+				%this.tool[%i] = %weapon;
+				%this.weaponCount++;
+				messageClient(%client,'MsgItemPickup','',%i,%weapon,true);
+			}
+		}
+	}
 }
 
 function Player::Shop_Load(%this, %bypass,%index)

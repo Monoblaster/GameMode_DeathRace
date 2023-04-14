@@ -150,6 +150,12 @@ function GameConnection::DeathRace_Load(%this) {
 	if(%this.dataInstance($DR::SaveSlot).DR_MapGUI $= "")
 		%this.dataInstance($DR::SaveSlot).DR_MapGUI = 1;
 
+	if(%this.dataInstance($DR::SaveSlot).savedLoadout[0] $= "")
+		%this.dataInstance($DR::SaveSlot).savedLoadout[0] = $DR::DefaultLoadout;
+	
+	if(%this.dataInstance($DR::SaveSlot).LastLoadOut $= "")
+		%this.dataInstance($DR::SaveSlot).LastLoadOut = $DR::DefaultLoadout;
+
 	%this.setScore(%this.dataInstance($DR::SaveSlot).DR_Score + 0);
 
 	%bl_id = %this.getBLID();

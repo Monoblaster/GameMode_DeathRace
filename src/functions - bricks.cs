@@ -455,8 +455,23 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 			if(isObject(%currClient))
 			{
 				%currClient.DR_hudObject.set($Hud::Time,"<just:right>\n");
-				if(isObject(%player = %currClient.player) && vectorDist(%player.getPosition(), %player.DR_SpawnPosition) < 5)
-					%player.kill();
+
+				%player = %currClient.player;
+				if(isObject(%player))
+				{
+					if(vectorDist(%player.getPosition(), %player.DR_SpawnPosition) < 5)
+					{
+						%player.kill();
+						continue;
+					}
+					
+					if(!DRInventoryUI_Ready(%currClient))
+					{
+						%currClient.chatMessage("\c6Loading default loadout for the race");
+						%player.Shop_LoadList($DR::DefaultLoadout);
+						DRInventoryUI_Ready(%currClient);
+					}
+				}
 			}
 		}
 	}

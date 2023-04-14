@@ -153,26 +153,6 @@ function purchaseLoadout(%client)
 		commandToClient(%this, 'DRShop', "SET_BOUGHT", %groupObj.uiName, %this.dataInstance($DR::SaveSlot).boughtItem[%strName]);
 	}
 
-	//remove gaps
-	for(%i = 0; %i < %count; %i++)
-	{
-		%tool = %player.tool[%i];
-		if(!isObject(%tool))
-		{
-			for(%j = (%i + 1); %j < %count; %j++)
-			{
-				%tool = %player.tool[%j];
-				if(isObject(%tool))
-				{
-					%player.tool[%i] = %player.tool[%j];
-					%player.tool[%j] = "";
-					break;
-				}
-			}
-		}
-	}
-	Inventory::Display(%player,%client,true);
-
 	return true;
 }
 
@@ -246,10 +226,50 @@ function DRInventoryUI_SpawnPrint(%client,%inv,%slot)
 
 function DRInventoryUI_Ready(%client)
 {
-	if(purchaseLoadout(%client))
+	%player = %client.player;
+	if(isObject(%player) && purchaseLoadout(%client))
 	{
+		%s = "";
+		%count = %client.getMaxTools();
+		for(%i = 0; %i < %count; %i++)
+		{
+			%tool = %player.tool[%i];
+			if(isObject(%tool))
+			{
+				%shopObj = getDRShopGroup().findScript(%tool.uiName);
+				%shopObj.canSave = 1;
+				%s = %s SPC %tool.getName();
+			}
+			else
+			{
+				%s = %s SPC "EMPTYSLOT";
+			}
+		}
+		%client.dataInstance($DR::SaveSlot).LastLoadOut = %s;
+
+		//remove gaps
+		for(%i = 0; %i < %count; %i++)
+		{
+			%tool = %player.tool[%i];
+			if(!isObject(%tool))
+			{
+				for(%j = (%i + 1); %j < %count; %j++)
+				{
+					%tool = %player.tool[%j];
+					if(isObject(%tool))
+					{
+						%player.tool[%i] = %player.tool[%j];
+						%player.tool[%j] = "";
+						break;
+					}
+				}
+			}
+		}
+		Inventory::Display(%player,%client,true);
+
 		return true;
 	}
+
 	%client.chatMessage("\c6You do not have enough score to use this loadout.");
 	return false;
 }
@@ -386,7 +406,7 @@ function DRInventoryUI_Load(%client,%inv,%slot)
 	%player = %client.player;
 	if(isObject(%player))
 	{
-		%player.Shop_Load(0,%slot);
+		%player.Shop_LoadList(%client.dataInstance($DR::SaveSlot).savedLoadout[%slot]);
 		%client.DRInventoryUI_pop();
 	}
 }

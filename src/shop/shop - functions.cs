@@ -44,12 +44,12 @@ function findVehicleByName(%vehicle, %val)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-registerOutputEvent(GameConnection, "Shop_Save");
-registerOutputEvent(GameConnection, "Shop_Load");
-registerOutputEvent(GameConnection, "Shop_AutoLoad");
+// registerOutputEvent(GameConnection, "Shop_Save");
+// registerOutputEvent(GameConnection, "Shop_Load");
+// registerOutputEvent(GameConnection, "Shop_AutoLoad");
 
-registerOutputEvent(GameConnection,"RequestItem", "datablock itemData", "int 1 10 3");
-registerOutputEvent(GameConnection,"DisplayItem", "datablock itemData" TAB "int 1 10 3");
+// registerOutputEvent(GameConnection,"RequestItem", "datablock itemData", "int 1 10 3");
+// registerOutputEvent(GameConnection,"DisplayItem", "datablock itemData" TAB "int 1 10 3");
 
 function GameConnection::Shop_AutoLoad(%this)
 {
@@ -105,9 +105,9 @@ function GameConnection::Shop_Spawn(%this)
 		%player.clearTools();
 		return;
 	}
-
-	if(%this.autoLoadMode)
-		%player.Shop_Load(1);
+	
+	%this.DRInventoryUI_push("Spawn");
+	%player.Shop_LoadList(%this.dataInstasnce($DR::SaveSlot).LastLoadOut);
 }
 
 function GameConnection::Shop_SetData(%this)
