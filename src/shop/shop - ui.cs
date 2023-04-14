@@ -468,7 +468,7 @@ function DRInventoryUI_Shop(%client,%inv,%slot)
 	%item = %client.DRInventoryUI_Shop.get(%slot + %client.DRInventoryUI_ShopOffset);
 	if(%slot == 0)
 	{
-		%client.DRInventoryUI_ShopOffset += %client.getMaxTools();
+		%client.DRInventoryUI_ShopOffset += %client.getMaxTools() - 1;
 		if(!isObject(%client.DRInventoryUI_Shop.get(%client.DRInventoryUI_ShopOffset + 1)))
 		{
 			%client.DRInventoryUI_ShopOffset = -1;
