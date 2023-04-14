@@ -3,29 +3,33 @@ $DR::DefaultLoadout = "EMPTYSLOT PistolItem L4BCookingKnifeItem EMPTYSLOT EMPTYS
 datablock ItemData(DRInventoryUIPrimary)
 {
 	uiname = "Primary";
+	iconName = BattleRifleItem.iconName;
 	doColorShift = true;
-	colorShiftColor = "0.6 0 0 1";
+	colorShiftColor = "0 0 0 1";
 };
 
 datablock ItemData(DRInventoryUISecondary)
 {
 	uiname = "Secondary";
+	iconName = PistolItem.iconName;
 	doColorShift = true;
-	colorShiftColor = "0 0.6 0 1";
+	colorShiftColor = "0 0 0 1";
 };
 
 datablock ItemData(DRInventoryUIMelee)
 {
 	uiname = "Melee";
+	iconName = L4BCookingKnifeItem.iconName;
 	doColorShift = true;
-	colorShiftColor = "0.5 0.5 0.5 1";
+	colorShiftColor = "0 0 0 1";
 };
 
 datablock ItemData(DRInventoryUISupport)
 {
 	uiname = "Support";
+	iconName = StimpackItem.iconName;
 	doColorShift = true;
-	colorShiftColor = "0 0 0.6 1";
+	colorShiftColor = "0 0 0 1";
 };
 
 datablock ItemData(DRInventoryUILoad)
@@ -201,9 +205,9 @@ function DRInventoryUI_SpawnPrint(%client,%inv,%slot)
 	case %c++:
 		%s = "Switch your support item";
 	case %c++:
-		%s = "Load a different loadout";
-	case %c++:
 		%s = "Save your current loadout";
+	case %c++:
+		%s = "Load a different loadout";
 	case %c++:
 		%s = "Confirm your loadout";
 	}
@@ -297,9 +301,9 @@ function DRInventoryUI_SpawnNext(%client,%inv,%slot)
 		%client.DRInventoryUI_Shop = $DRInventoryUI_ShopSupport;
 		%s = "ShopOverlay";
 	case %c++:
-		%s = "Load";
-	case %c++:
 		%s = "Save";
+	case %c++:
+		%s = "Load";
 	case %c++:
 		if( DRInventoryUI_Ready(%client))
 		{
@@ -507,8 +511,8 @@ function DRInventoryUI_Init()
 	%o.set(%c++,DRInventoryUISecondary);
 	%o.set(%c++,DRInventoryUIMelee);
 	%o.set(%c++,DRInventoryUISupport);
-	%o.set(%c++,DRInventoryUILoad);
 	%o.set(%c++,DRInventoryUISave);
+	%o.set(%c++,DRInventoryUILoad);
 	%o.set(%c++,DRInventoryUIReady);
 	%o.print = "DRInventoryUI_SpawnPrint";
 	%o.next = "DRInventoryUI_SpawnNext";
