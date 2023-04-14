@@ -42,6 +42,7 @@ package DeathRace_Minigame
 	{
 		%member.DeathRace_Save();
 		%member.clearMaxTools();
+		%member.DRInventoryUI_clear();
 		%member.TotalPlayTime = $Sim::Time;
 		Parent::removeMember(%this, %member);
 	}
