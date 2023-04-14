@@ -302,7 +302,7 @@ function CustomMinigameSO::Reset(%mini, %client)
 	%p = Parent::Reset(%mini, %client);
 
 	%mini.isPreRound = 0;
-	%mini.spawnItems();
+	//%mini.spawnItems();
 	for(%i = 0; %i < %mini.numMembers; %i++)
 	{
 		%cl = %mini.member[%i];

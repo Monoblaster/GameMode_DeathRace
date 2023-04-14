@@ -61,6 +61,8 @@ package DeathRace_Minigame
 
 		if(%damageType != $DamageType::AFK)
 			%this.dataInstance($DR::SaveSlot).DR_totalDeaths++;
+
+		%this.DRInventoryUI_clear();
 	}
 
 	function SimObject::setNTObjectName(%obj, %name)

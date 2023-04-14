@@ -245,7 +245,7 @@ function DRInventoryUI_Ready(%client)
 				%s = %s SPC "EMPTYSLOT";
 			}
 		}
-		%client.dataInstance($DR::SaveSlot).LastLoadOut = %s;
+		%client.dataInstance($DR::SaveSlot).LastLoadOut = trim(%s);
 
 		//remove gaps
 		for(%i = 0; %i < %count; %i++)
@@ -617,7 +617,9 @@ function GameConnection::DRInventoryUI_display(%client)
 		if(isObject(%player))
 		{
 			Inventory::Display(%player,%client,true);
+			return;
 		}
+		Inventory::Display(%client,%client,true);
 		return;
 	}
 

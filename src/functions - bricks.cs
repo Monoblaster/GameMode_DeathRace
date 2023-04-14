@@ -428,19 +428,19 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 		%mini.DR_StartTime = $Sim::Time;
 		%mini.isStartingDR = 0;
 
-		%c = MissionCleanUp.getCount();
-		for(%i = 0; %i < %c; %i++)
-		{
-			%obj = MissionCleanUp.getObject(%i);
-			if(%obj.getClassName() $= "Item" && isObject(%spawnBr = %obj.spawnBrick))
-			{
-				%spawnBr.itemDataName = %obj.getDatablock().getName();
-				if(!ItemBrickGroup.isMember(%spawnBr) && getMinigameFromObject(%spawnBr) == %mini)
-					ItemBrickGroup.add(%spawnBr);
+		// %c = MissionCleanUp.getCount();
+		// for(%i = 0; %i < %c; %i++)
+		// {
+		// 	%obj = MissionCleanUp.getObject(%i);
+		// 	if(%obj.getClassName() $= "Item" && isObject(%spawnBr = %obj.spawnBrick))
+		// 	{
+		// 		%spawnBr.itemDataName = %obj.getDatablock().getName();
+		// 		if(!ItemBrickGroup.isMember(%spawnBr) && getMinigameFromObject(%spawnBr) == %mini)
+		// 			ItemBrickGroup.add(%spawnBr);
 
-				%obj.schedule(0, "delete");
-			}
-		}
+		// 		%obj.schedule(0, "delete");
+		// 	}
+		// }
 
 		%group.DR_OpenDoors();
 
@@ -472,6 +472,7 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 						DRInventoryUI_Ready(%currClient);
 					}
 				}
+				%currClient.DRInventoryUI_clear();
 			}
 		}
 	}
@@ -555,15 +556,15 @@ function fxDTSBrick::ResetDeathRace(%this,%client)
 	%mini.cannotSuicide = false;
 
 	%group = %this.getGroup();
-	if((%c = ItemBrickGroup.getCount()) > 0)
-	{
-		for(%i = 0; %i < %c; %i++)
-		{
-			%br = ItemBrickGroup.getObject(%i);
-			if(%br.itemDataName !$= "")
-				%br.setItem(%br.itemDataName);
-		}
-	}
+	// if((%c = ItemBrickGroup.getCount()) > 0)
+	// {
+	// 	for(%i = 0; %i < %c; %i++)
+	// 	{
+	// 		%br = ItemBrickGroup.getObject(%i);
+	// 		if(%br.itemDataName !$= "")
+	// 			%br.setItem(%br.itemDataName);
+	// 	}
+	// }
 
 	LoadEnvironmentFromFile(filePath($Server::MapSys_Path) @ "/" @ $Temp::MapSys_CurrentMapName @ ".txt", 1);
 	%r = getRandom(1, mClampF($Server::DeathRace_Luck, 1, 10));
