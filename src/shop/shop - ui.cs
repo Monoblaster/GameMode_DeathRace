@@ -653,12 +653,13 @@ package DRInventoryUI
 		%curr = %client.DRInventoryUI_top();
 		if(%curr !$= "")
 		{
+			%client.currUi = "";
 			if(!%curr.cantClose)
 			{
 				%client.DRInventoryUI_pop();
 			}
 		}
-
+		
 		return Parent::serverCmdUnUseTool(%client);
 	}
 
