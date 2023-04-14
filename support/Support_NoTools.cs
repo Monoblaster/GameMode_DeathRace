@@ -23,7 +23,13 @@ activatePackage(ToggleTools);
 function Player::resetWeaponCount(%this)
 {
 	%this.weaponCount = 0;
-	for(%i = 0; %i < %this.getDatablock().maxTools; %i++)
+	%client = %this.client;
+	if(!isObject(%client))
+	{
+		return;
+	}
+	
+	for(%i = 0; %i < %client.getMaxTools(); %i++)
 	{
 		if(isObject(%item = %this.tool[%i]))
 			if(%item.getClassName() $= "ItemData")

@@ -33,6 +33,7 @@ package DeathRace_Minigame
 
 		Parent::addMember(%this, %member);
 		%member.Deathrace_Load();
+		%member.setMaxTools(7);
 		
 		%member.TotalPlayTime = $Sim::time;
 	}
@@ -40,6 +41,7 @@ package DeathRace_Minigame
 	function MiniGameSO::removeMember(%this, %member)
 	{
 		%member.DeathRace_Save();
+		%member.clearMaxTools();
 		%member.TotalPlayTime = $Sim::Time;
 		Parent::removeMember(%this, %member);
 	}

@@ -94,7 +94,7 @@ function Player::hasItem(%player, %item)
 		%item = findItemByName(%item);
 	if(!isObject(%item)) return -1;
 	%item = nameToID(%item);
-	for(%i = 0; %i < %player.getDatablock().maxTools; %i++)
+	for(%i = 0; %i < %client.getMaxTools(); %i++)
 	{
 		%tool = %player.tool[%i];
 		if(isObject(%tool) && %tool == %item)
@@ -116,7 +116,7 @@ function Player::addNewItem(%player, %item, %silent)
 		%item = findItemByName(%item);
 	if(!isObject(%item)) return -1;
 	%item = %item.getid();
-	for(%i = 0; %i < %player.getDatablock().maxTools; %i++)
+	for(%i = 0; %i < %client.getMaxTools(); %i++)
 	{
 		%tool = %player.tool[%i];
 		if(!isObject(%tool))
@@ -170,7 +170,7 @@ function Player::removeItem(%player, %item, %searchForAll, %silent)
 		%item = findItemByName(%item);
 	if(!isObject(%item)) return false;
 	%item = nameToID(%item);
-	for(%i = 0; %i < %player.getDatablock().maxTools; %i++)
+	for(%i = 0; %i < %client.getMaxTools(); %i++)
 	{
 		%tool = %player.tool[%i];
 		if(%tool == %item)

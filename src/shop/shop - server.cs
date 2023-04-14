@@ -1017,43 +1017,29 @@ function Player::Shop_Save(%this,%index)
 	if(isObject(%client.Shop_SaveFile)) {%client.Shop_SaveFile.close(); %client.Shop_SaveFile.delete();}
 
 	%index += 0;
-	for(%j = 0;%j < %this.getDatablock().maxTools; %j++)
+	for(%j = 0;%j < %client.getMaxTools(); %j++)
 		if(isObject(%this.tool[%j])) %count++;
-
-	if(%count <= 0)
-	{
-		%client.chatMessage("You don't have any weapons to save!");
-		return;
-	}
 
 	if(%client.minigame.noitems)
 		return;
 
 	%s = "";
 	//talk(%client.getPlayerName() @ " -> Saving items");
-	for(%i = 0;%i < %this.getDatablock().maxTools; %i++)
+	for(%i = 0;%i < %client.getMaxTools(); %i++)
 	{
-		if(isObject(%tool = %this.tool[%i]))
+		%tool = %this.tool[%i];
+		if(isObject(%tool))
 		{
-			%weapon = %tool.getName();
-			//talk("   --> " @ %weapon);
-			if(isObject(%shopObj = getDRShopGroup().findScript(%weapon.uiName)))
-			{
-				if(%shopObj.canSave || %shopObj.canSave $= "")
-				{
-					%shopObj.canSave = 1;
-					%s = %s SPC %weapon;
-				}
-				else
-					%cannotSaveCount++;
-			}
-			else
-			{
-				%s = %s SPC "EMPTYSLOT";
-			}
-			// else
-			//	%client.Shop_SaveFile.writeLine(%weapon);
+			%shopObj = getDRShopGroup().findScript(%tool.uiName);
+			%shopObj.canSave = 1;
+			%s = %s SPC %tool.getName();
 		}
+		else
+		{
+			%s = %s SPC "EMPTYSLOT";
+		}
+		// else
+		//	%client.Shop_SaveFile.writeLine(%weapon);
 	}
 	%client.dataInstance($DR::SaveSlot).savedLoadout[%index] = trim(%s);
 
