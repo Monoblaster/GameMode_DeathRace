@@ -571,7 +571,7 @@ function DRInventoryUI_ShopInit()
 	DRInventoryUI_FillItems(%o,"Support");
 	$DRInventoryUI_ShopSupport = %o;
 }
-schedule(1000,"","DRInventoryUI_ShopInit");
+schedule(1000,0,"DRInventoryUI_ShopInit");
 
 function GameConnection::DRInventoryUI_push(%client,%inv)
 {
