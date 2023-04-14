@@ -428,19 +428,19 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 		%mini.DR_StartTime = $Sim::Time;
 		%mini.isStartingDR = 0;
 
-		// %c = MissionCleanUp.getCount();
-		// for(%i = 0; %i < %c; %i++)
-		// {
-		// 	%obj = MissionCleanUp.getObject(%i);
-		// 	if(%obj.getClassName() $= "Item" && isObject(%spawnBr = %obj.spawnBrick))
-		// 	{
-		// 		%spawnBr.itemDataName = %obj.getDatablock().getName();
-		// 		if(!ItemBrickGroup.isMember(%spawnBr) && getMinigameFromObject(%spawnBr) == %mini)
-		// 			ItemBrickGroup.add(%spawnBr);
+		%c = MissionCleanUp.getCount();
+		for(%i = 0; %i < %c; %i++)
+		{
+			%obj = MissionCleanUp.getObject(%i);
+			if(%obj.getClassName() $= "Item" && isObject(%spawnBr = %obj.spawnBrick))
+			{
+				%spawnBr.itemDataName = %obj.getDatablock().getName();
+				if(!ItemBrickGroup.isMember(%spawnBr) && getMinigameFromObject(%spawnBr) == %mini)
+					ItemBrickGroup.add(%spawnBr);
 
-		// 		%obj.schedule(0, "delete");
-		// 	}
-		// }
+				%obj.schedule(0, "delete");
+			}
+		}
 
 		%group.DR_OpenDoors();
 
