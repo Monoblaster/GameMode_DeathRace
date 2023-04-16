@@ -108,47 +108,56 @@ function SimObject::DataInstance_ListLoad(%obj)
 	if(%id $= "")
 	{
 		warn("Cannot load " @ %obj.getClassName());
-		return;
+		return "";
 	}
+
+	DataInstance_ListLoad($DataInstance::FilePath @ "/" @ %id @ ".cs", %obj);
+}
+
+function DataInstance_ListLoad(%path,%parent)
+{
 	%fo = new FileObject();
-	if(%fo.OpenForRead($DataInstance::FilePath @ "/" @ %id @ ".cs"))
+	if(%fo.OpenForRead(%path))
 	{
 		%c = 0;
 		while(!%fo.isEOF())
 		{
-			%data[%c] = eval(%fo.readLine());
+			%o = eval(%fo.readLine());
+			%o.DataInstance_parent = %parent;
+			%data[%c] = %o
 			%c++;
 		}
 	}
 	%fo.close();
 	%fo.delete();
 
-	DataInstance_ListDelete(%obj.DataInstance_List);
-	//unwrapped first loop to ensure propper formatting without trimming
-	%data = %data[0];
-	%obj.DataInstance_List = %data;
-	if(isObject(%data))
+	DataInstance_ListDelete(%parent.DataInstance_List);
+
+	if(%c == 0)
 	{
-		%data.DataInstance_parent = %obj;
-		if(%data.DataInstance_List !$= "")
-		{
-			%data.DataInstance_ListLoad();
-		}
+		%parent.DataInstance_List = "";
+		return "";
+	}
+	
+	//unwrapped first loop to ensure propper formatting without trimming
+	%currData = %data[0];
+	%s = %currData;
+	if(isObject(%currData))
+	{
+		%currData.DataInstance_ListLoad();
 	}
 	
 	for(%i = 1; %i < %c; %i++)
 	{
-		%data = %data[%i];
-		%obj.DataInstance_List = %obj.DataInstance_List SPC %data;
-		if(isObject(%data))
+		%currData = %data[%i];
+		%s = %s SPC %currData;
+		if(isObject(%currData))
 		{
-			%data.DataInstance_parent = %obj;
-			if(%data.DataInstance_List !$= "")
-			{
-				%data.DataInstance_ListLoad();
-			}
+			%currData.DataInstance_ListLoad();
 		}
 	}
+	
+	%parent.DataInstance_List = %s;
 }
 
 function SimObject::DataIdentifier(%obj,%append)
