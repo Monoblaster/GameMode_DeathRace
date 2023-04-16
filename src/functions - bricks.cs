@@ -432,7 +432,7 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 		for(%i = 0; %i < %c; %i++)
 		{
 			%obj = MissionCleanUp.getObject(%i);
-			if(%obj.getClassName() $= "Item" && isObject(%spawnBr = %obj.spawnBrick))
+			if(%obj.getClassName() $= "Item" && isObject(%spawnBr = %obj.spawnBrick) && %obj.getDataBlock().getName() !$= "BigStaticItem")
 			{
 				%spawnBr.itemDataName = %obj.getDatablock().getName();
 				if(!ItemBrickGroup.isMember(%spawnBr) && getMinigameFromObject(%spawnBr) == %mini)

@@ -229,7 +229,12 @@ function DRInventoryUI_SpawnPrint(%client,%inv,%slot)
 }
 
 function DRInventoryUI_Ready(%client)
-{
+{	
+	if(%client.DRInventoryUI_top() 	$= "")
+	{
+		return true;
+	}
+
 	%player = %client.player;
 	if(isObject(%player) && purchaseLoadout(%client))
 	{
@@ -455,7 +460,7 @@ function DRInventoryUI_ShopPrint(%client,%inv,%slot)
 		{
 			return "\c3Empties this slot";
 		}
-		return formatItem(%item,%client,true,true);
+		return formatItem(%item,%client,true,true) @ "\c3Add to your loadout but not buy";
 	}
 	return "";
 }

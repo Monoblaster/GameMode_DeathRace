@@ -217,7 +217,7 @@ function ServerAchievement::onCheckDetail(%achievement, %client)
 			}
 			else if(%name $= "playtime") // minutes
 			{
-				if((%client.getTotalPlayTime() / 60 + 100) >= %rewardAmt)
+				if((%client.getTotalPlayTime() / 60) >= %rewardAmt)
 					%tempTime = %rewardAmt @ "+"; // I cannot do this in any other language, but on the client --> "120+"/"120" is actually 1.
 				else
 					%tempTime = (%client.getTotalPlayTime() / 60);

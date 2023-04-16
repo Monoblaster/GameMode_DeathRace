@@ -287,22 +287,18 @@ function GameConnection::onDeath(%client, %sourceObject, %sourceClient, %damageT
 
 	if(isObject(%mg = %client.miniGame))
 	{
-		if(isfunction(%mg.class, updateLives) || isfunction(%mg.superclass, updateLives))
+		if(isfunction(%mg.class, updateLives))
 			%mg.updateLives();
 
 		if(isObject(%mode = %mg.mode) && isObject(%sourceClient) && %sourceClient.getClassName() $= "GameConnection")
 		{
 			if(isFunction(%mode.class, "onDeath"))
 				%mode.onDeath(%mg, %client, %sourceClient, %damageType, %position);
-			else if(isFunction(%mode.superclass, "onDeath"))
-				%mode.onDeath(%mg, %client, %sourceClient, %damageType, %position);
 		}
 
 		if(isObject(%special = %mg.special) && isObject(%sourceClient) && %sourceClient.getClassName() $= "GameConnection")
 		{
 			if(isFunction(%special.class, "onDeath"))
-				%special.onDeath(%mg, %client, %sourceClient, %damageType, %position);
-			else if(isFunction(%special.superclass, "onDeath"))
 				%special.onDeath(%mg, %client, %sourceClient, %damageType, %position);
 		}
 	}

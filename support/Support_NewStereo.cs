@@ -145,6 +145,7 @@ function NewStereo_Menu(%mount,%client,%musicData)
 //this uses a object created within the gamemode
 function NewStereo_GetRandom()
 {
+	setRandomSeed($Sim::time);
 	return %musicData = MusicDataCache.item[getRandom(0, MusicDataCache.itemCount-1)];
 }
 
