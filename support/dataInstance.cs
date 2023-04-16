@@ -124,7 +124,7 @@ function DataInstance_ListLoad(%path,%parent)
 		{
 			%o = eval(%fo.readLine());
 			%o.DataInstance_parent = %parent;
-			%data[%c] = %o
+			%data[%c] = %o;
 			%c++;
 		}
 	}
@@ -138,7 +138,7 @@ function DataInstance_ListLoad(%path,%parent)
 		%parent.DataInstance_List = "";
 		return "";
 	}
-	
+
 	//unwrapped first loop to ensure propper formatting without trimming
 	%currData = %data[0];
 	%s = %currData;
