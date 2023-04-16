@@ -460,7 +460,7 @@ function DRInventoryUI_ShopPrint(%client,%inv,%slot)
 		{
 			return "\c3Empties this slot";
 		}
-		return formatItem(%item,%client,true,true) @ "\c3Add to your loadout but not buy";
+		return formatItem(%item,%client,true,true) NL "\c3Add to your loadout but not buy";
 	}
 	return "";
 }
