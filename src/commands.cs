@@ -64,6 +64,25 @@ function serverCmdBackwardsDriving(%this)
 	}
 }
 
+// gonna sleep on this until t+t is remade to actually be probed like this
+// most of it is hardcoded >:(
+// function serverCmdStats(%client,%a,%b,%c,%d,%e,%f,%g,%h,%i,%j,%k,%l)
+// {
+// 	%name = trim(%a SPC %b SPC %c SPC %d SPC %e SPC %f SPC %g SPC %h SPC %i SPC %j SPC %k SPC %l);
+// 	%item = findItemByName(%name);
+// 	%image = %item.image;
+
+// 	if(%image.TT_raycastEnabled)
+// 	{
+// 		//raycasted
+// 		talk("raycasted");
+// 	}
+// 	else
+// 	{
+// 		//projectile
+// 		talk("projectile");
+// 	}
+// }
 
 
 function serverCmdHelp(%this)
