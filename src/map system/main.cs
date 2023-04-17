@@ -422,16 +422,16 @@ function serverCmdSetMap(%client, %a1, %a2, %a3, %a4)
 	}
 
 
-	%map = $Server::MapSys_Path @ %map @ ".bls";
-	if(!isFile(%map))
+	%mappath = findFirstFile($Server::MapSys_Path @ %map @ ".bls");
+	if(!isFile(%mappath))
 	{
 		%client.chatMessage("Invalid map \c3" @ %map);
 		return;
 	}
 
-	MapSys_SetMapNext(2, %map);
-	echo(%client.getPlayerName() @ " made an override to set the map to " @ fileBase(%map) @ ".");
-	announce(%client.getPlayerName() @ " \c6made an override to set the map to " @ fileBase(%map) @ ".");
+	MapSys_SetMapNext(2, %mappath);
+	echo(%client.getPlayerName() @ " made an override to set the map to " @ fileBase(%mappath) @ ".");
+	announce(%client.getPlayerName() @ " \c6made an override to set the map to " @ fileBase(%mappath) @ ".");
 }
 
 function serverCmdNextMap(%client)
@@ -545,9 +545,15 @@ function serverCmdSaveMap(%client, %a0, %a1, %a2, %a3, %a4, %a5, %a6, %a7, %a8, 
 	for(%a = 0; %a < 10; %a++)
 		%map = %map @ %a[%a] @ " ";
 
-	%map = stripChars(stripMLControlChars(trim(%map)), "`~!@#^&*=+{}\\|;:\'\",<>/?[].");
+	%map = trim(%map);
+	if(%map $= "")
+	{
+		%map = $Temp::MapSys_CurrentMapName;
+	}
 
-	messageAll('MsgAdminForce', '\c3%1 \c6is attempting to save the current map.', %client.getPlayerName());
+	%map = stripChars(stripMLControlChars(%map), "`~!@#^&*=+{}\\|;:\'\",<>/?[].");
+
+	messageAll('MsgAdminForce', '\c3%1 \c6is attempting to save the current map as %2.', %client.getPlayerName(),%map);
 	MC_Save1_begin(%map);
 }
 
@@ -558,11 +564,16 @@ function serverCmdSaveEnvMap(%client, %a0, %a1, %a2, %a3, %a4, %a5, %a6, %a7, %a
 
 	for(%a = 0; %a < 10; %a++)
 		%map = %map @ %a[%a] @ " ";
-	%map = stripMLControlChars(trim(%map));
-	%path = $Server::MapSys_Path @ stripChars(%map, "`~!@#^&*=+{}\\|;:\'\",<>/?[].") @ ".txt";
+
+	%map = trim(%map);
+	if(%map $= "")
+	{
+		%map = $Temp::MapSys_CurrentMapName;
+	}
+	%path = $Server::MapSys_Path @ stripChars(stripMLControlChars(%map), "`~!@#^&*=+{}\\|;:\'\",<>/?[].") @ ".txt";
 
 	saveEnvironment(%path);
-	announce("\c6(\c3" @ %client.getPlayerName() @ "\c6) \c6Current environment saved into the map changer. (\c3" @ %path @ "\cr)");
+	announce("\c6(\c3" @ %client.getPlayerName() @ "\c6) \c6Current environment saved into the map changer for %2. (\c3" @ %path @ "\cr)");
 }
 
 function serverCmdVoteMapByName(%client, %mapName)
