@@ -2,6 +2,32 @@
 if(!isObject(DR_LeaderboardList))
 	new GuiTextListCtrl(DR_LeaderboardList);
 
+function Leaderboard_CalculateScore(%client)
+{
+	%score = 0;
+	%score += %data.DR_totalPoints * 0.7;
+	%score += %data.DR_giveDamage * 0.3;
+	%score += %data.DR_PlayTime/60;
+	%score -= %data.DR_totalDeaths * 0.2;
+
+	return %score;
+}
+
+function Leaderboard_FieldString(%client)
+{
+	%data = %client.dataInstance($DR::SaveSlot);
+	return
+		(%data.DR_totalPoints | 0) TAB 
+		(%data.DR_giveDamage | 0) TAB 
+		(%data.DR_totalKills | 0) TAB 
+		(%data.DR_totalDeaths | 0) TAB 
+		(%data.DR_totalWins | 0) TAB 
+		(%data.DR_totalRounds | 0) TAB 
+		(%data.DR_totalItemsBought | 0) TAB 
+		(%data.DR_PlayTime | 0) TAB 
+		Leaderboard_CalculateScore(%client);
+}
+
 function DR_Leaderboard_Scan()
 {
 	announce("Scanning information for leaderboard. This will take some time.");
@@ -11,66 +37,28 @@ function DR_Leaderboard_Scan()
 
 function DR_Leaderboard_Scan2()
 {
+	%m = $defaultMinigame;
 	DR_LeaderboardList.clear();
-	%path = $DeathRace::Profiles @ "*.DeathRaceProfile";
 
+	%dummyParent = new ScriptObject();
+
+	%s = %m.dataInstance($DR::SaveSlot).ClientDataString;
+	%count = getWordCount(%s);
 	// List for tabs (see functions - player.cs): score takeDamage giveDamage totalKills totalDeaths totalWins totalWinsByButton totalRounds totalPoints totalItemsBought FirstWin PlayTime (map data x 7)
-	for(%file = findFirstFile(%path); %file !$= ""; %file = findNextFile(%path))
+	for(%i = 0; %i < %count; %i ++)
 	{
-		%bl_id = fileBase(%file);
+		DataInstance_ListLoad($DataInstance::FilePath @ "/" @ getWord(%s,%i) @ ".cs",%dummyParent);
+		%data = %dummyParent.dataInstance($DR::SaveSlot);
 
-		%count++;
+		%name = %data.playername;
+		%blid = %data.blid;
 
-		%curDates = strReplace(firstWord(getDateTime()), "/", " ");
-		%curMonth = getWord(%curDates, 0);
-		%curYear  = getWord(%curDates, 2);
-
-		%dates = strReplace(firstWord(getFileModifiedTime(%file)), "/", " ");
-		%month = getWord(%dates, 0);
-		%day   = getWord(%dates, 1);
-		%year  = getWord(%dates, 2);
-
-		// if(%count % 50)
-		// {
-		// 	echo("ModTime: " @ %dates);
-		// 	echo(" Diffs: (cur year): " @ (%curYear - %year) @ ", (cur month): " @ (%curMonth - %month));
-		// }
-
-		if(%curYear - %year > 1 || (%month == 3 && %day == 18 && %year == 20))
+		if(%name $= "" || %blid $= "")
 		{
-			%outdated++;
-			continue;
-		}
-		else if(%curMonth - %month > 6)
-		{
-			%outdated++;
 			continue;
 		}
 
-   		%io = new FileObject();
-		%io.openForRead(%file);
-
-		%line = %io.readLine(); // score/name
-		%score = getField(%line, 0);
-		%name = getField(%line, 1);
-
-		if(trim(%name) $= "" || %name $= "// Player's score")
-			%name = getField($ConnectedConfig::BL_IDName[%bl_id], getFieldCount($ConnectedConfig::BL_IDName[%bl_id])-1);
-
-		while(!%io.isEOF())
-		{
-			%line = %io.readLine();
-			%var = getField(%line, 0);
-			%val = getField(%line, 1);
-
-			%fieldToAdd[%var] = %val;
-		}
-		%io.close();
-		%io.delete();
-		
-   		%fieldString = (%fieldToAdd["totalPoints"] | 0) TAB (%fieldToAdd["giveDamage"] | 0) TAB (%fieldToAdd["totalKills"] | 0) TAB (%fieldToAdd["totalDeaths"] | 0) TAB (%fieldToAdd["totalWins"] | 0) TAB (%fieldToAdd["totalRounds"] | 0) TAB (%fieldToAdd["totalItemsBought"] | 0) TAB (%fieldToAdd["PlayTime"] | 0);
-   		%scoreLead   = %fieldToAdd["totalPoints"] * 0.7 + %fieldToAdd["giveDamage"] * 0.3 + %fieldToAdd["totalKills"] * 0.2 - %fieldToAdd["totalDeaths"] * 0.5 + (%fieldToAdd["totalRounds"] - %fieldToAdd["totalWins"]) * 0.55 + %fieldToAdd["totalItemsBought"] * 1 + %fieldToAdd["PlayTime"] /60;
-   		DR_LeaderboardList.addRow(%bl_id, %name TAB %fieldString TAB %scoreLead, DR_LeaderboardList.rowCount());
+   		DR_LeaderboardList.addRow(%blid, %name TAB Leaderboard_FieldString(%client), DR_LeaderboardList.rowCount());
 	}
 
 	DR_Leaderboard_Scan3(%outdated);
@@ -85,31 +73,21 @@ function DR_Leaderboard_Scan3(%outdated)
 	}
 
 	DR_LeaderboardList.sortNumerical(9, 0);
-	announce("Leaderboard scan complete. Added clients: " @ DR_LeaderboardList.rowCount() @ (%outdated > 1 ? " (outdated clients: " @ %outdated @ ")" : ""));
-	echo("Leaderboard scan complete. Added clients: " @ DR_LeaderboardList.rowCount() @ (%outdated > 1 ? " (outdated clients: " @ %outdated @ ")" : ""));
+	announce("Leaderboard scan complete. Added clients: " @ DR_LeaderboardList.rowCount());
+	echo("Leaderboard scan complete. Added clients: " @ DR_LeaderboardList.rowCount());
 }
 
 function GameConnection::UpdateToLeaderboard(%client, %ignoreUpdate)
 {
-	%bl_id = %client.getBLID();
-	%scoreLead   = %client.dataInstance($DR::SaveSlot).DR_totalPoints * 0.7 + %client.dataInstance($DR::SaveSlot).DR_giveDamage * 0.3 + %client.dataInstance($DR::SaveSlot).DR_totalKills * 0.2 - %client.dataInstance($DR::SaveSlot).DR_totalDeaths * 0.5 + (%client.dataInstance($DR::SaveSlot).DR_totalRounds - %client.dataInstance($DR::SaveSlot).DR_totalWins) * 0.55 + %client.dataInstance($DR::SaveSlot).DR_totalItemsBought * 1 + %client.dataInstance($DR::SaveSlot).DR_PlayTime/60;
-	%fieldString = (%client.dataInstance($DR::SaveSlot).DR_totalPoints | 0) TAB 
-		(%client.dataInstance($DR::SaveSlot).DR_giveDamage | 0) TAB 
-		(%client.dataInstance($DR::SaveSlot).DR_totalKills | 0) TAB 
-		(%client.dataInstance($DR::SaveSlot).DR_totalDeaths | 0) TAB 
-		(%client.dataInstance($DR::SaveSlot).DR_totalWins | 0) TAB 
-		(%client.dataInstance($DR::SaveSlot).DR_totalRounds | 0) TAB 
-		(%client.dataInstance($DR::SaveSlot).DR_totalItemsBought | 0) TAB 
-		(%client.dataInstance($DR::SaveSlot).DR_PlayTime | 0) TAB 
-		%scoreLead;
+	%blid = %client.getBLID();
 
-	if(DR_LeaderboardList.getRowNumByID(%bl_id) >= 0)
+	if(DR_LeaderboardList.getRowNumByID(%blid) >= 0)
 	{
-   		DR_LeaderboardList.setRowByID(%bl_id, %client.getPlayerName() TAB %fieldString);
+   		DR_LeaderboardList.setRowByID(%blid, %client.getPlayerName() TAB  Leaderboard_FieldString(%client));
 	}
    	else
    	{
-   		DR_LeaderboardList.addRow(%bl_id, %client.getPlayerName() TAB %fieldString, DR_LeaderboardList.rowCount());
+   		DR_LeaderboardList.addRow(%blid, %client.getPlayerName() TAB  Leaderboard_FieldString(%client), DR_LeaderboardList.rowCount());
    	}
 
    	if(!%ignoreUpdate)
@@ -143,3 +121,20 @@ function GameConnection::getLeaderboardNumber(%client)
 	%place = DR_LeaderboardList.getRowNumByID(%client.getBLID())+1;
 	return %place;
 }
+
+package leaderboard
+{
+	function GameConnection::OnClientEnterGame(%c)
+	{
+		%m = $defaultMinigame;
+		%id = %c.DataIdentifier();
+		if(!%m.dataInstance($DR::SaveSlot).ClientData[%id])
+		{
+			%m.dataInstance($DR::SaveSlot).ClientData[%id] = true;
+			%m.dataInstance($DR::SaveSlot).ClientDataString = trim(%m.dataInstance($DR::SaveSlot).ClientDataString SPC %id);
+		}
+		
+		return parent::OnClientEnterGame(%c);
+	}
+};
+activatePackage("leaderboard");

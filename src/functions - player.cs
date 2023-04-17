@@ -130,6 +130,8 @@ function GameConnection::DeathRace_Save(%this)
 {
 	%this.dataInstance($DR::SaveSlot).DR_PlayTime = %this.getTotalPlayTime() ;
     %this.dataInstance($DR::SaveSlot).DR_Score = %this.score;
+	%this.dataInstance($DR::SaveSlot).playername = %this.getPlayerName();
+	%this.dataInstance($DR::SaveSlot).blid = %this.getBLID();
 	%this.dataInstance_ListSave();
 
     echo("\'" @ %this.name @ "(" @ %this.getBLID() @ ")\' profile has been saved.");

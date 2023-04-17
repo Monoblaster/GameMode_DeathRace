@@ -132,7 +132,6 @@ function DataInstance_ListLoad(%path,%parent)
 	%fo.delete();
 
 	DataInstance_ListDelete(%parent.DataInstance_List);
-
 	if(%c == 0)
 	{
 		%parent.DataInstance_List = "";
@@ -156,7 +155,6 @@ function DataInstance_ListLoad(%path,%parent)
 			%currData.DataInstance_ListLoad();
 		}
 	}
-	
 	%parent.DataInstance_List = %s;
 }
 

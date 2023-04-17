@@ -307,7 +307,6 @@ function CustomMinigameSO::Reset(%mini, %client)
 	{
 		%cl = %mini.member[%i];
 		%cl.Deathrace_Load();
-		%cl.dataInstance($DR::SaveSlot).DR_totalRounds++;
 	}
 
 	%mini.onRoundStart();

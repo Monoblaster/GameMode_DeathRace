@@ -455,7 +455,6 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 			if(isObject(%currClient))
 			{
 				%currClient.DR_hudObject.set($Hud::Time,"<just:right>\n");
-
 				%player = %currClient.player;
 				if(isObject(%player))
 				{
@@ -464,7 +463,8 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 						%player.kill();
 						continue;
 					}
-					
+
+					%currClient.dataInstance($DR::SaveSlot).DR_totalRounds++;
 					if(!DRInventoryUI_Ready(%currClient))
 					{
 						%currClient.chatMessage("\c6Loading default loadout for the race");
