@@ -217,7 +217,12 @@ package DeathRace_MinigameLoop
 
 	function GameConnection::onClientLeaveGame(%c)
 	{
-		%c.DR_hudObject.delete();
+		%hud = %c.DR_hudObject;
+		if(isObject(%hud))
+		{
+			%hud.delete();
+		}
+		
 		parent::onClientLeaveGame(%c);
 	}
 
@@ -253,9 +258,13 @@ package DeathRace_MinigameLoop
 	function GameConnection::SpawnPlayer(%c)
 	{
  		%r = parent::SpawnPlayer(%c);
-		%c.DR_hudObject.set($Hud::HP,"<just:left>\c6Health: \c3" @ mCeil(%c.player.getHealth() / %c.player.getMaxHealth() * 100) @ "\c6%");
-		%c.DR_hudObject.set($Hud::VehicleSong,"");
-		%c.DR_hudObject.set($Hud::VehicleHP,"");
+		%hud = %c.DR_hudObject;
+		if(isObject(%hud))
+		{
+			%hud.set($Hud::HP,"<just:left>\c6Health: \c3" @ mCeil(%c.player.getHealth() / %c.player.getMaxHealth() * 100) @ "\c6%");
+			%hud.set($Hud::VehicleSong,"");
+			%hud.set($Hud::VehicleHP,"");
+		}
 		return %r;
 	}
 

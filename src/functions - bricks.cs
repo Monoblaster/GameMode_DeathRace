@@ -206,6 +206,7 @@ function SimGroup::DR_EnableVehicles(%this)
 
 function fxDTSBrick::StartDeathRace(%this, %time, %client)
 {
+	setRandomSeed(getsimtime());
 	if(!isObject(%mini = getMiniGameFromObject(%this)))
 		return;
 
