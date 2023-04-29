@@ -64,6 +64,45 @@ function serverCmdBackwardsDriving(%this)
 	}
 }
 
+function serverCmdToggleTimers(%client,%a,%b,%c,%d,%e,%f,%g)
+{
+	if(!%client.isAdmin)
+	{
+		return "";
+	}
+
+	%name = trim(%a SPC %b SPC %c SPC %d SPC %e SPC %f SPC %g);
+	%targetClient = FindClientByName(%name);
+	if(%name $= "")
+	{
+		%targetClient = %client;
+	}
+
+	if(!isObject(%targetClient))
+	{
+		%client.chatMessage("Target not found");
+		return "";
+	}
+
+	%targetClient.DR_noTimers = !%targetClient.DR_noTimers;
+
+	%s = "\c3" @ %client.getPlayerName() SPC "\c6toggled timers";
+	%state = "\c2On";
+	if(%targetClient.DR_noTimers)
+	{
+		%state = "\c0Off";
+	}
+	%s = %s SPC %state;
+
+	%s = %s SPC "\c6for\c3" SPC %targetClient.getPlayerName();
+	%client.chatMessage(%s);
+	if(%client != %targetClient)
+	{
+		%targetClient.chatMessage(%s);
+	}
+	return "";
+}
+
 // gonna sleep on this until t+t is remade to actually be probed like this
 // most of it is hardcoded >:(
 // function serverCmdStats(%client,%a,%b,%c,%d,%e,%f,%g,%h,%i,%j,%k,%l)

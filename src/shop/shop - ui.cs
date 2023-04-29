@@ -48,7 +48,7 @@ datablock ItemData(DRInventoryUISave)
 
 datablock ItemData(DRInventoryUIReady)
 {
-	uiname = "Ready";
+	uiname = "Done";
 	doColorShift = true;
 	colorShiftColor = "1 0 1 1";
 };
@@ -78,6 +78,33 @@ datablock ItemData(DRInventoryUINone)
 	uiname = "None";
 };
 
+datablock ItemData(DRInventoryUIYes)
+{
+	uiname = "Yes";
+};
+
+datablock ItemData(DRInventoryUICancel)
+{
+	uiname = "Cancel";
+};
+
+datablock ItemData(DRInventoryUINo)
+{
+	uiname = "No";
+};
+
+datablock ItemData(DRInventoryUIConfirm)
+{
+	uiname = "Confirm";
+};
+
+datablock ItemData(DRInventoryUIEquipmentEditor)
+{
+	uiname = "Loadout";
+};
+
+
+
 function DRInventoryManager::add(%obj, %inv, %name)
 {
 	if(%obj.UI[%name] !$= "")
@@ -104,7 +131,48 @@ function DRInventoryManager::onRemove(%obj)
 	}
 }
 
-function purchaseLoadout(%client)
+function purchaseTool(%client,%item,%notRoundStart)
+{
+	%this = %client;
+	%obj = findItemByName(%item);
+	%cost = ToolCost(%client,%obj,%notRoundStart);
+	if(%cost > %client.score)
+	{
+		return false;
+	}
+
+	%groupObj = getDRShopGroup().findScript(%item);
+	if(!isObject(%groupObj))
+	{
+		%this.chatMessage("\c6Invalid shop item (\"\c3" @ %item @ "\c6\"). Please contact your super administrator.");
+		return false;
+	}
+
+	%strName = stripChars(%groupObj.uiName, $Shop::Chars);
+	%strName = strReplace(%strName, " ", "_");
+
+	if(!%groupObj.buyOnce)
+	{
+		%this.dataInstance($DR::SaveSlot).boughtItem[%strName] = 0;
+		commandToClient(%this, 'DRShop', "SET_BOUGHT", %groupObj.uiName, %this.dataInstance($DR::SaveSlot).boughtItem[%strName]);
+	}
+
+	if(!%this.dataInstance($DR::SaveSlot).boughtItem[%strName] && !%this.bypassShop)
+	{
+		%this.incScore(-%cost);
+	}
+
+	if(%groupObj.buyOnce && !%this.dataInstance($DR::SaveSlot).boughtItem[%strName])
+	{
+		%this.dataInstance($DR::SaveSlot).boughtItem[%strName] = 1;
+		if(%cost > 0) %this.chatMessage("\c6You have bought this item: \c4" @ %groupObj.uiName @ "\c6, you now equip it! You do not ever have to buy this weapon again, yay!");
+	}
+
+	commandToClient(%this, 'DRShop', "SET_BOUGHT", %groupObj.uiName, %this.dataInstance($DR::SaveSlot).boughtItem[%strName]);
+	return true;
+}
+
+function purchaseLoadout(%client,%notRoundStart)
 {
 	%this = %client;
 	%player = %client.player;
@@ -113,7 +181,8 @@ function purchaseLoadout(%client)
 		return false;
 	}
 
-	if(LoadoutCost(%client) > %client.score)
+	%cost = LoadoutCost(%client,%notRoundStart);
+	if(%cost > %client.score)
 	{
 		return false;
 	}
@@ -128,39 +197,38 @@ function purchaseLoadout(%client)
 		}
 
 		%item = %item.uiName;
-		%obj = findItemByName(%item);
-		%groupObj = getDRShopGroup().findScript(%item);
-		if(!isObject(%groupObj))
+
+		if(!purchaseTool(%client,%item,%notRoundStart))
 		{
-			%this.chatMessage("\c6Invalid shop item (\"\c3" @ %item @ "\c6\"). Please contact your super administrator.");
 			return false;
 		}
-
-		%strName = stripChars(%groupObj.uiName, $Shop::Chars);
-		%strName = strReplace(%strName, " ", "_");
-
-		if(!%groupObj.buyOnce)
-		{
-			%this.dataInstance($DR::SaveSlot).boughtItem[%strName] = 0;
-			commandToClient(%this, 'DRShop', "SET_BOUGHT", %groupObj.uiName, %this.dataInstance($DR::SaveSlot).boughtItem[%strName]);
-		}
-
-		if(!%this.dataInstance($DR::SaveSlot).boughtItem[%strName] && !%this.bypassShop)
-			%this.incScore(-%groupObj.cost);
-
-		if(%groupObj.buyOnce && !%this.dataInstance($DR::SaveSlot).boughtItem[%strName])
-		{
-			%this.dataInstance($DR::SaveSlot).boughtItem[%strName] = 1;
-			if(%groupObj.cost > 0) %this.chatMessage("\c6You have bought this item: \c4" @ %groupObj.uiName @ "\c6, you now equip it! You do not ever have to buy this weapon again, yay!");
-		}
-
-		commandToClient(%this, 'DRShop', "SET_BOUGHT", %groupObj.uiName, %this.dataInstance($DR::SaveSlot).boughtItem[%strName]);
 	}
 
 	return true;
 }
 
-function LoadoutCost(%client)
+function ToolCost(%client,%item,%notRoundStart)
+{
+	if(!isObject(%item))
+	{
+		return 0;
+	}
+
+	%data = %client.dataInstance($DR::SaveSlot);
+	%shopName = stripChars(strReplace(%item.uiname, " ", "_"), $Shop::Chars);
+	%script = getDRShopGroup().findScript(%item.uiname);
+	if(%notRoundStart && !%script.buyOnce)
+	{
+		return 0;
+	}
+	if(!%data.boughtItem[%shopName])
+	{
+		return %script.cost;
+	}
+	return 0;
+}
+
+function LoadoutCost(%client,%notRoundStart)
 {
 	%player = %client.player;
 	if(!isObject(%player))
@@ -174,23 +242,38 @@ function LoadoutCost(%client)
 	for(%i = 0; %i < %count; %i++)
 	{
 		%item = %player.tool[%i];
-		if(!isObject(%item))
-		{
-			continue;
-		}
-
-		%shopName = stripChars(strReplace(%item.uiname, " ", "_"), $Shop::Chars);
-		%script = getDRShopGroup().findScript(%item.uiname);
-		if(!%data.boughtItem[%shopName])
-		{
-			%total += %script.cost;
-		}
+		%total += ToolCost(%client,%item,%notRoundStart);
 	}
 
 	return %total;
 }
 
 function DRInventoryUI_SpawnPrint(%client,%inv,%slot)
+{
+	%c = -1;
+	%s = "";
+	switch(%slot)
+	{
+	case 6:
+		%s = "Open the loadout editor";
+	}
+	%s = "\c3" @ %s;
+	return %s;
+}
+
+function DRInventoryUI_SpawnNext(%client,%inv,%slot)
+{
+	%c = -1;
+	%s = "";
+	switch(%slot)
+	{
+	case 6:
+		%s = "EquipmentEditor";
+	}
+	return %s;
+}
+
+function DRInventoryUI_EquipmentEditorPrint(%client,%inv,%slot)
 {
 	%c = -1;
 	%s = "";
@@ -215,7 +298,7 @@ function DRInventoryUI_SpawnPrint(%client,%inv,%slot)
 	%cost = LoadoutCost(%client);
 	if(%cost > 0)
 	{
-		%s = "\c5Current loadout costs" SPC %cost SPC "points to use" NL %s;
+		%s = "\c5Current loadout costs" SPC %cost SPC "points every round" NL %s;
 	}
 	
 	%player = %client.player;
@@ -228,34 +311,32 @@ function DRInventoryUI_SpawnPrint(%client,%inv,%slot)
 	return %s;
 }
 
-function DRInventoryUI_Ready(%client)
+function DRInventoryUI_Ready(%client,%save,%notRoundStart)
 {	
-	if(%client.DRInventoryUI_top() 	$= "")
-	{
-		return true;
-	}
-
 	%player = %client.player;
-	if(isObject(%player) && purchaseLoadout(%client))
+	if(isObject(%player) && purchaseLoadout(%client,%notRoundStart))
 	{
-		%s = "";
-		%count = %client.getMaxTools();
-		for(%i = 0; %i < %count; %i++)
+		if(%save && !%notRoundStart)
 		{
-			%tool = %player.tool[%i];
-			if(isObject(%tool))
+			%s = "";
+			%count = %client.getMaxTools();
+			for(%i = 0; %i < %count; %i++)
 			{
-				%shopObj = getDRShopGroup().findScript(%tool.uiName);
-				%shopObj.canSave = 1;
-				%s = %s SPC %tool.getName();
+				%tool = %player.tool[%i];
+				if(isObject(%tool))
+				{
+					%shopObj = getDRShopGroup().findScript(%tool.uiName);
+					%shopObj.canSave = 1;
+					%s = %s SPC %tool.getName();
+				}
+				else
+				{
+					%s = %s SPC "EMPTYSLOT";
+				}
 			}
-			else
-			{
-				%s = %s SPC "EMPTYSLOT";
-			}
+			%client.dataInstance($DR::SaveSlot).LastLoadOut = trim(%s);
 		}
-		%client.dataInstance($DR::SaveSlot).LastLoadOut = trim(%s);
-
+		
 		//remove gaps
 		for(%i = 0; %i < %count; %i++)
 		{
@@ -283,7 +364,7 @@ function DRInventoryUI_Ready(%client)
 	return false;
 }
 
-function DRInventoryUI_SpawnNext(%client,%inv,%slot)
+function DRInventoryUI_EquipmentEditorNext(%client,%inv,%slot)
 {
 	%c = -1;
 	%s = "";
@@ -310,7 +391,7 @@ function DRInventoryUI_SpawnNext(%client,%inv,%slot)
 	case %c++:
 		%s = "Load";
 	case %c++:
-		if( DRInventoryUI_Ready(%client))
+		if( DRInventoryUI_Ready(%client,true,true))
 		{
 			%s = "POP";
 		}
@@ -349,6 +430,23 @@ function formatItem(%item,%c,%desc,%purchaseinfo)
 		{
 			%append = %append NL "\c5MUST BE REBOUGHT";
 		}
+
+		if(!%script.buyOnce)
+		{
+			%append = %append NL "\c3Equip and purchase at roundstart";
+		}
+		else if(%data.boughtItem[%shopName])
+		{
+			%append = %append NL "\c3Equip";
+		}	
+		else if(%script.cost + 0 > %c.score)
+		{
+			%append = %append NL "\c0Not enough points";
+		}
+		else
+		{
+			%append = %append NL "\c3Purchase";
+		}
 	}
 
 	return %append;
@@ -383,7 +481,7 @@ function formatItems(%list,%c,%desc,%purchaseInfo)
 
 	if(%totalCost > 0)
 	{
-		%s = %s NL "\c5Costs" SPC %totalCost SPC "points to use";
+		%s = %s NL "\c5Costs" SPC %totalCost SPC "points every round";
 	}
 	return trim(%s);
 }
@@ -460,7 +558,7 @@ function DRInventoryUI_ShopPrint(%client,%inv,%slot)
 		{
 			return "\c3Empties this slot";
 		}
-		return formatItem(%item,%client,true,true) NL "\c3Add to your loadout but not buy";
+		return formatItem(%item,%client,true,true);
 	}
 	return "";
 }
@@ -468,6 +566,10 @@ function DRInventoryUI_ShopPrint(%client,%inv,%slot)
 function DRInventoryUI_ShopPush(%client,%inv,%slot)
 {
 	%client.DRInventoryUI_ShopOffset = -1;
+}
+
+function DRInventoryUI_ShopDisplay(%client,%inv,%slot)
+{
 	%client.DRInventoryUI_Shop.display(%client,true,%client.DRInventoryUI_ShopOffset);
 }
 
@@ -494,12 +596,54 @@ function DRInventoryUI_Shop(%client,%inv,%slot)
 		%replaceSlot = %client.DRInventoryUI_ShopReplaceSlot;
 		if(%item == DRInventoryUINone.getid())
 		{
-			%item = "";
+			%player.tool[%replaceSlot] = "";
+			messageClient(%client,'MsgItemPickup','',%replaceSlot,"",true);
+			%client.DRInventoryUI_pop();
+			return;
 		}
-		%player.tool[%replaceSlot] = %item;
-		messageClient(%client,'MsgItemPickup','',%replaceSlot,%item,true);
-		%client.DRInventoryUI_pop();
+
+		if(%client.DataInstance($DR::SaveSlot).boughtItem[stripChars(strReplace(%item.uiname, " ", "_"), $Shop::Chars)])
+		{
+			%player.tool[%replaceSlot] = %item;
+			messageClient(%client,'MsgItemPickup','',%replaceSlot,%item,true);
+			%client.DRInventoryUI_pop();
+			return;
+		}	
+
+		%client.DRInventoryUI_OnYes = "ShopPurchaseItem";
+		%client.DRInventoryUI_Item = %item;
+		%client.DRInventoryUI_Message = "\c6Are you sure you want to equip this item?" NL formatItem(%item,%client,true,true);
+		%client.DRInventoryUI_push("Confirm");
 	}
+}
+
+function ShopPurchaseItem(%client)
+{
+	%client.DRInventoryUI_pop();
+	%player = %client.player;
+	%item = %client.DRInventoryUI_Item;
+	if(!isObject(%item) || !isObject(%player))
+	{
+		return;
+	}
+
+	purchaseTool(%client,%item.uiName,true);
+	%replaceSlot = %client.DRInventoryUI_ShopReplaceSlot;
+	%player.tool[%replaceSlot] = %item;
+	messageClient(%client,'MsgItemPickup','',%replaceSlot,%item,true);
+}
+
+function DRInventoryUI_ConfirmPrint(%client,%inv,%slot)
+{
+	%shopSlot = %slot + %client.DRInventoryUI_ShopOffset;
+	%item = %client.DRInventoryUI_Shop.get(%shopSlot);
+	return %client.DRInventoryUI_Message;
+}
+
+function DRInventoryUI_Confirm(%client,%inv,%slot)
+{
+	call(%client.DRInventoryUI_OnYes,%client);
+	%client.DRInventoryUI_pop();
 }
 
 function DRInventoryUI_Init()
@@ -518,12 +662,33 @@ function DRInventoryUI_Init()
 	%o.set(%c++,DRInventoryUISupport);
 	%o.set(%c++,DRInventoryUISave);
 	%o.set(%c++,DRInventoryUILoad);
-	%o.set(%c++,DRInventoryUIReady);
 	%o.print = "DRInventoryUI_SpawnPrint";
 	%o.next = "DRInventoryUI_SpawnNext";
 	%o.cantClose = true;
 	%o.displayTools = true;
+	$DRInventoryUI.add(%o,"Dead");
+	
+	%o = Inventory_Create();
+	%o.set(6,DRInventoryUIEquipmentEditor);
+	%o.print = "DRInventoryUI_SpawnPrint";
+	%o.next = "DRInventoryUI_SpawnNext";
+	%o.cantClose = true;
+	%o.displayTools = true;
+	%o.canUseItems = true;
 	$DRInventoryUI.add(%o,"Spawn");
+
+	%o = Inventory_Create();
+	%c = -1;
+	%o.set(%c++,DRInventoryUIPrimary);
+	%o.set(%c++,DRInventoryUISecondary);
+	%o.set(%c++,DRInventoryUIMelee);
+	%o.set(%c++,DRInventoryUISupport);
+	%o.set(%c++,DRInventoryUISave);
+	%o.set(%c++,DRInventoryUILoad);
+	%o.print = "DRInventoryUI_EquipmentEditorPrint";
+	%o.next = "DRInventoryUI_EquipmentEditorNext";
+	%o.displayTools = true;
+	$DRInventoryUI.add(%o,"EquipmentEditor");
 
 	%c = -1;
 	%o = Inventory_Create();
@@ -546,11 +711,19 @@ function DRInventoryUI_Init()
 	%c = -1;
 	%o = Inventory_Create();
 	%o.set(0,DRInventoryUINext);
-	%o.push = "DRInventoryUI_ShopPush";
+	%o.display = "DRInventoryUI_ShopDisplay";
 	%o.print = "DRInventoryUI_ShopPrint";
+	%o.push = "DRInventoryUI_ShopPush";
 	%o.use = "DRInventoryUI_Shop";
 	%o.overlay = true;
 	$DRInventoryUI.add(%o,"ShopOverlay");
+
+	%c = -1;
+	%o = Inventory_Create();
+	%o.set(0,DRInventoryUIConfirm);
+	%o.print = "DRInventoryUI_ConfirmPrint";
+	%o.use = "DRInventoryUI_Confirm";
+	$DRInventoryUI.add(%o,"Confirm");
 }
 DRInventoryUI_Init();
 
@@ -632,8 +805,8 @@ function GameConnection::DRInventoryUI_display(%client)
 		return;
 	}
 
+	call(%curr.display,%client,%curr,%client.currInvSlot);
 	%curr.display(%client,!%curr.overlay);
-	
 
 	%player = %client.player;
 	if(isObject(%player))
@@ -683,23 +856,32 @@ package DRInventoryUI
 			{
 				%client.currUi = %slot;
 			}
-			%slot = %client.currUi;
+			%uislot = %client.currUi;
 
-			if(%slot !$= "")
+			if(%uislot !$= "")
 			{
+				%slot = -1;
 				%controls = "\c4Click to use";
 				if(!%curr.cantClose)
 				{
 					%controls = %controls NL "Close to cancel";
 				}
-				%client.centerPrint(trim(call(%curr.print,%client,%curr,%slot) NL %controls));
 			}
-			
+			%client.centerPrint(trim(call(%curr.print,%client,%curr,%uislot) NL %controls));
+
 			if(!%curr.canUseItems)
 			{
 				return;
 			}
+
+			%player = %client.player;
+			if(%slot == -1 && isobject(%player))
+			{
+				%player.unmountImage(0);
+				fixArmReady(%player);
+			}
 		}
+
 		return parent::serverCmdUseTool(%client,%slot);
 	}
 
@@ -725,7 +907,7 @@ package DRInventoryUI
 					}
 				}
 				call(%curr.use,%client,%curr,%slot);
-				if(!%curr.canUseItems)
+				if(!%curr.canUseItems || !isObject(%player.tool[%slot]))
 				{
 					return;
 				}

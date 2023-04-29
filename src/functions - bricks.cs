@@ -206,7 +206,7 @@ function SimGroup::DR_EnableVehicles(%this)
 
 function fxDTSBrick::StartDeathRace(%this, %time, %client)
 {
-	setRandomSeed(getsimtime());
+	setRandomSeed(getsimtime() % 1000 * 100);
 	if(!isObject(%mini = getMiniGameFromObject(%this)))
 		return;
 
@@ -466,11 +466,11 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 					}
 
 					%currClient.dataInstance($DR::SaveSlot).DR_totalRounds++;
-					if(!DRInventoryUI_Ready(%currClient))
+					if(!DRInventoryUI_Ready(%currClient,true,false))
 					{
 						%currClient.chatMessage("\c6Loading default loadout for the race");
 						%player.Shop_LoadList($DR::DefaultLoadout);
-						DRInventoryUI_Ready(%currClient);
+						DRInventoryUI_Ready(%currClient,false,false);
 					}
 				}
 				%currClient.DRInventoryUI_clear();

@@ -2,7 +2,7 @@
 if(!isObject(DR_LeaderboardList))
 	new GuiTextListCtrl(DR_LeaderboardList);
 
-function Leaderboard_CalculateScore(%client)
+function Leaderboard_CalculateScore(%data)
 {
 	%score = 0;
 	%score += %data.DR_totalPoints * 0.7;
@@ -13,9 +13,8 @@ function Leaderboard_CalculateScore(%client)
 	return %score;
 }
 
-function Leaderboard_FieldString(%client)
+function Leaderboard_FieldString(%data)
 {
-	%data = %client.dataInstance($DR::SaveSlot);
 	return
 		(%data.DR_totalPoints | 0) TAB 
 		(%data.DR_giveDamage | 0) TAB 
@@ -25,7 +24,7 @@ function Leaderboard_FieldString(%client)
 		(%data.DR_totalRounds | 0) TAB 
 		(%data.DR_totalItemsBought | 0) TAB 
 		(%data.DR_PlayTime | 0) TAB 
-		Leaderboard_CalculateScore(%client);
+		Leaderboard_CalculateScore(%data);
 }
 
 function DR_Leaderboard_Scan()
@@ -58,7 +57,7 @@ function DR_Leaderboard_Scan2()
 			continue;
 		}
 
-   		DR_LeaderboardList.addRow(%blid, %name TAB Leaderboard_FieldString(%client), DR_LeaderboardList.rowCount());
+   		DR_LeaderboardList.addRow(%blid, %name TAB Leaderboard_FieldString(%client.dataInstance($DR::SaveSlot)), DR_LeaderboardList.rowCount());
 	}
 
 	DR_Leaderboard_Scan3(%outdated);
@@ -83,11 +82,11 @@ function GameConnection::UpdateToLeaderboard(%client, %ignoreUpdate)
 
 	if(DR_LeaderboardList.getRowNumByID(%blid) >= 0)
 	{
-   		DR_LeaderboardList.setRowByID(%blid, %client.getPlayerName() TAB  Leaderboard_FieldString(%client));
+   		DR_LeaderboardList.setRowByID(%blid, %client.getPlayerName() TAB  Leaderboard_FieldString(%client.dataInstance($DR::SaveSlot)));
 	}
    	else
    	{
-   		DR_LeaderboardList.addRow(%blid, %client.getPlayerName() TAB  Leaderboard_FieldString(%client), DR_LeaderboardList.rowCount());
+   		DR_LeaderboardList.addRow(%blid, %client.getPlayerName() TAB  Leaderboard_FieldString(%client.dataInstance($DR::SaveSlot)), DR_LeaderboardList.rowCount());
    	}
 
    	if(!%ignoreUpdate)

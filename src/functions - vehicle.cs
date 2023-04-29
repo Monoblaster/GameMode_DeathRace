@@ -101,7 +101,7 @@ function Vehicle::DR_toSongString(%vehicle)
 	else
 		%vehicle_Song[%i] = "NONE";
 
-	return "\c6Vehicle song: \c4" @ %vehicle_Song;
+	return "\c6Song: \c4" @ %vehicle_Song;
 }
 
 ///////////////////////////////////////////////////////////

@@ -410,6 +410,19 @@ function Server_LoadTitles()
 		MLTags 			= "";
 	};
 
+	new ScriptObject("Title_Candy_Maker")
+	{
+		class 			= "ServerTitle";
+		uiName 			= "Candy Maker";
+		cost 			= 0;
+		hexColor 		= "F8C8DC";
+		colorNameStr 	= "";
+		font 	 		= "";
+		fontSize		= "";
+		bl_idList	 	= "";
+		MLTags 			= "";
+	};
+
 	// -------------------- Shop ------------------------ \\
 
 	new ScriptObject("Title_Overpowered")
@@ -1172,7 +1185,7 @@ package Server_Titles
 		%oldPre = %this.clanPrefix;
 		if(%this.titleUIName !$= "")
 			%this.clanPrefix = "<sPush>" @ %this.TitleMLTags @ %this.titleFontStr @ %this.titleNameML @ "<sPop> \c7" @ %this.clanPrefix;
-
+		
 		Parent::serverCmdMessageSent(%this, %message);
 		%this.clanPrefix = %oldPre;
 	}

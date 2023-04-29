@@ -18,11 +18,11 @@ function MinigameSO::DR_Loop(%mini)
 	%deathrace_maxtime = %mini.deathRaceMaxTime;
 	%deathrace_lastReset = %mini.lastDeathRaceReset;
 	%deathrace_vehicleExplodeTime = $Pref::Server::VehicleAfkTimer;
-	%deathrace_time = mCeil(%mini.deathRaceMaxTime - ((getSimTime() - %mini.lastDeathRaceReset) / 1000));
+	%deathrace_time = mCeil(%deathrace_maxtime  - ((getSimTime() - %deathrace_lastReset) / 1000));
+	%timeRemaining = mCeil(%mini.TimeLimit - (getSimTime() - %mini.lastResetTime) / 1000);
 	%avoidCheck = %mini.avoidVehicleDeathCheck;
 	%isStarting = %mini.isStartingDR;
 	%isResetting = %mini.resetting;
-
 	
 	// loop through everyone
 	%count = %mini.numMembers;
@@ -33,7 +33,7 @@ function MinigameSO::DR_Loop(%mini)
 		if(isObject(%client))
 		{
 			%hud = "";
-			%noHud = %client.dataInstance($DR::SaveSlot).DR_NoHud || %isResetting;
+			%noHud = %client.dataInstance($DR::SaveSlot).DR_NoHud;
 			if(isObject(%player = %client.player) && %player.isEnabled())
 			{
 				%hud = %client.DR_HudObject;
@@ -52,7 +52,7 @@ function MinigameSO::DR_Loop(%mini)
 							if((%curTime - %vehicle.lastTick) > 1)
 							{
 								// afk vehicle check
-								if(VectorLen(%vehicle.getVelocity()) < 4)
+								if(!%client.DR_noTimers && VectorLen(%vehicle.getVelocity()) < 4)
 								{
 									%vehicleTimeDeath = mFloor(%vehicle.VehicleAfkTimer);
 									if(%vehicleTimeDeath < %deathrace_vehicleExplodeTime)
@@ -79,7 +79,7 @@ function MinigameSO::DR_Loop(%mini)
 						else
 						{
 							// out of vehicle timer
-							if(%maxOOVT !$= "" && !%avoidCheck)
+							if(!%client.DR_noTimers && !%avoidCheck)
 							{
 								%player.OutOfVehicleTimer = mClampF(%OOVT + 1,0,%maxOOVT);
 								if(%OOVT >= %maxOOVT)
@@ -90,6 +90,13 @@ function MinigameSO::DR_Loop(%mini)
 								%client.DR_hudObject.set($Hud::Time, "<Just:Right>Dying in " @ getTimeString(mCeil(%maxOOVT - %OOVT)) @ "\n");
 								//%client.bottomPrint("<just:center><font:" @ %font @ ":22>\c6You need to get back in your vehicle!\n\c6Time: \c3" @ , 2, 1);
 							}
+						}
+
+						//time remaining
+						if(%timeRemaining < 60 && (%timeRemaining % 2 == 0 || !%usingTimer))
+						{
+							%usingTimer = true;
+							%client.DR_HudObject.set($Hud::Time, "<Just:Right>\c6 Ends in" SPC getTimeString(%timeRemaining));
 						}
 					}
 
@@ -137,7 +144,7 @@ function MinigameSO::DR_Loop(%mini)
 
 			if(!%noHud)
 			{
-				if(%isStarting)
+				if(%isStarting || %isResetting)
 				{
 					%client.bottomPrint(%hud.get(), %loopTime * 2 / 1000, 1);
 				}
@@ -236,9 +243,9 @@ package DeathRace_MinigameLoop
 		%client = %mount.client;
 		if(isObject(%client))
 		{
-			%client.DR_hudObject.set($Hud::VehicleSong,"<just:Right>\c6Vehicle song: \c4" @ %song @ "\n ");
+			%client.DR_hudObject.set($Hud::VehicleSong,"<just:Right>\c6Song: \c4" @ %song @ "\n ");
 		}
-		%mount.setHud($Hud::VehicleSong,"<just:Right>\c6Vehicle song: \c4" @ %song @ "\n");
+		%mount.setHud($Hud::VehicleSong,"<just:Right>\c6Song: \c4" @ %song @ "\n");
 		return parent::NewStereo_Set(%mount,%musicData);
 	}
 
@@ -300,7 +307,7 @@ package DeathRace_MinigameLoop
 			%c = %obj.client;
 			if(isObject(%c))
 			{
-				%c.DR_hudObject.set($Hud::VehicleSong,"<just:Right>\c6Vehicle song: \c4" @ %song @ "\n");
+				%c.DR_hudObject.set($Hud::VehicleSong,"<just:Right>\c6Song: \c4" @ %song @ "\n");
 				%c.DR_hudObject.set($Hud::VehicleHP,"<just:Left>\c6Vehicle: \c3" @ mCeil((%MaxHp - %damage) / %MaxHp * 100) @ "\c6%");
 			}
 		}
@@ -355,12 +362,14 @@ function ShapeBase::DR_TeamCheck(%vehicle)
 	%lastTeam = "";
 	for(%i = 0; %i < %count; %i++)
 	{
-		%currTeam = getWord(%mounted,%i).client.team;
+
+		%client = getWord(%mounted,%i).client;
+		%currTeam = %client.team;
 		if(isObject(%currTeam))
 		{
 			if(%lastTeam)
 			{
-				if(%lastTeam != %currTeam)
+				if(%lastTeam != %currTeam && !%client.DR_noTimers)
 				{
 					%isTeaming = true;
 					break;

@@ -648,7 +648,7 @@ function Server_LoadAchievements()
 		hasReward		= 1;														// If it has an award it'll call the default onUnlock unless it has a custom one as class::onUnlock
 		rewardPoints	= 0;														// How many points to award the player
 		rewardCheck		= "kills 100";												// Multiple checks are accepted in tabs (\t), first one is value name, second one is value check, see above for types of value checks
-		rewardTitle		= Server_TitleGroup.objIndex["Unstoppable"];													// Reward title in ID/constant so it's easier to find and award the player
+		rewardTitle		= %title = Server_TitleGroup.objIndex["Unstoppable"];													// Reward title in ID/constant so it's easier to find and award the player
 		rewardTextML	= "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop>";	// ML text for chat of the reward
 		rewardText		= "title " @ %title.uiName;									// No ML text for console or other case of the reward
 	};																				// Needs a ; to create object (you get a compiler error anyway
@@ -677,7 +677,7 @@ function Server_LoadAchievements()
 		hasReward = 1;
 		rewardCheck = "winsByButton 1";
 		rewardPoints = 15;
-		rewardTitle = Server_TitleGroup.objIndex["Button_Presser"];
+		rewardTitle = %title = Server_TitleGroup.objIndex["Button_Presser"];
 		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c315 points";
 		rewardText = "title " @ %title.uiName @ " and 10 points";
 	};
@@ -692,7 +692,7 @@ function Server_LoadAchievements()
 		hasReward = 1;
 		rewardCheck = "winsByButton 100";
 		rewardPoints = 75;
-		rewardTitle = Server_TitleGroup.objIndex["Veteran_Driver"];
+		rewardTitle = %title = Server_TitleGroup.objIndex["Veteran_Driver"];
 		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c375 points";
 		rewardText = "title " @ %title.uiName @ " and 75 points";
 	};
@@ -707,7 +707,7 @@ function Server_LoadAchievements()
 		hasReward = 1;
 		rewardCheck = "winsByButton 10";
 		rewardPoints = 25;
-		rewardTitle = Server_TitleGroup.objIndex["Uber"];
+		rewardTitle = %title = Server_TitleGroup.objIndex["Uber"];
 		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c325 points";
 		rewardText = "title " @ %title.uiName @ " and 25 points";
 	};
@@ -722,7 +722,7 @@ function Server_LoadAchievements()
 		hasReward = 1;
 		rewardCheck = "winsByButton 25";
 		rewardPoints = 40;
-		rewardTitle = Server_TitleGroup.objIndex["Demolition_Uber"];
+		rewardTitle = %title = Server_TitleGroup.objIndex["Demolition_Uber"];
 		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c340 points";
 		rewardText = "title " @ %title.uiName @ "and 40 points";
 	};
@@ -752,7 +752,7 @@ function Server_LoadAchievements()
 		hasReward = 1;
 		rewardCheck = "playtime 600";
 		rewardPoints = 0;
-		rewardTitle = Server_TitleGroup.objIndex["Addicted"];
+		rewardTitle = %title = Server_TitleGroup.objIndex["Addicted"];
 		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop>";
 		rewardText = "title " @ %title.uiName;
 	};
@@ -766,7 +766,7 @@ function Server_LoadAchievements()
 		description = "Get a triple kill.";
 		hasReward = 1;
 		rewardPoints = 50;
-		rewardTitle = Server_TitleGroup.objIndex["Bloodthirsty"];
+		rewardTitle = %title = Server_TitleGroup.objIndex["Bloodthirsty"];
 		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c350 points";
 		rewardText = "title " @ %title.uiName @ " and 50 points";
 	};
@@ -781,7 +781,7 @@ function Server_LoadAchievements()
 		description = "Finish Mountain of Death by pressing the win button 10 times.";
 		hasReward = 1;
 		rewardPoints = 20;
-		rewardTitle = Server_TitleGroup.objIndex["Mt_Luneth"];
+		rewardTitle = %title = Server_TitleGroup.objIndex["Mt_Luneth"];
 		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
 		rewardText = "title " @ %title.uiName @ " and 20 points";
 	};
@@ -795,7 +795,7 @@ function Server_LoadAchievements()
 		description = "Finish Beachland by pressing the win button 10 times.";
 		hasReward = 1;
 		rewardPoints = 20;
-		rewardTitle = Server_TitleGroup.objIndex["Tropical"];
+		rewardTitle = %title = Server_TitleGroup.objIndex["Tropical"];
 		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
 		rewardText = "title " @ %title.uiName @ " and 20 points";
 	};
@@ -809,7 +809,7 @@ function Server_LoadAchievements()
 		description = "Finish Lethal Lava Jumps by pressing the win button 10 times.";
 		hasReward = 1;
 		rewardPoints = 20;
-		rewardTitle = Server_TitleGroup.objIndex["Explosive"];
+		rewardTitle = %title = Server_TitleGroup.objIndex["Explosive"];
 		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
 		rewardText = "title " @ %title.uiName @ " and 20 points";
 	};
@@ -823,7 +823,7 @@ function Server_LoadAchievements()
 		description = "Finish Rocky Road by pressing the win button 10 times.";
 		hasReward = 1;
 		rewardPoints = 20;
-		rewardTitle = Server_TitleGroup.objIndex["Off_Road"];
+		rewardTitle = %title = Server_TitleGroup.objIndex["Off_Road"];
 		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
 		rewardText = "title " @ %title.uiName @ " and 20 points";
 	};
@@ -837,7 +837,7 @@ function Server_LoadAchievements()
 		description = "Finish Rough Rapids by pressing the win button 10 times.";
 		hasReward = 1;
 		rewardPoints = 20;
-		rewardTitle = Server_TitleGroup.objIndex["Aquifer"];
+		rewardTitle = %title = Server_TitleGroup.objIndex["Aquifer"];
 		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
 		rewardText = "title " @ %title.uiName @ " and 20 points";
 	};
@@ -851,7 +851,7 @@ function Server_LoadAchievements()
 		description = "Finish Desert Trove by pressing the win button 10 times.";
 		hasReward = 1;
 		rewardPoints = 20;
-		rewardTitle = Server_TitleGroup.objIndex["All_Terrain"];
+		rewardTitle = %title = Server_TitleGroup.objIndex["All_Terrain"];
 		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
 		rewardText = "title " @ %title.uiName @ " and 20 points";
 	};
@@ -865,7 +865,21 @@ function Server_LoadAchievements()
 		description = "Finish Finicky Forest by pressing the win button 10 times.";
 		hasReward = 1;
 		rewardPoints = 20;
-		rewardTitle = Server_TitleGroup.objIndex["Chop_Wood"];
+		rewardTitle = %title = Server_TitleGroup.objIndex["Chop_Wood"];
+		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
+		rewardText = "title " @ %title.uiName @ " and 20 points";
+	};
+
+	new ScriptObject("DRAch_Candyland_Expert")
+	{
+		class = "ServerAchievement";
+		uiName = "Candyland Expert";
+		isSecret = 1;
+		isHidden = 0;
+		description = "Finish Candyland by pressing the win button 10 times.";
+		hasReward = 1;
+		rewardPoints = 20;
+		rewardTitle = %title = Server_TitleGroup.objIndex["Candy_Maker"];
 		rewardTextML = "\c6title <sPush>" @ %title.fontStr @ %title.colorNameStr @ "<sPop> \c6and \c320 points";
 		rewardText = "title " @ %title.uiName @ " and 20 points";
 	};

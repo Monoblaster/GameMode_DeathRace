@@ -138,3 +138,7 @@ while(isFile($file))
 	$file = findNextFile("Add-ons/music/*.ogg");
 }
 createGameModeMusicDataBlocks();
+
+//fixes anti rapid fire not being on top of the stack
+deactivatePackage("antiRapidFire");
+schedule(1000,0,"activatePackage","antiRapidFire");

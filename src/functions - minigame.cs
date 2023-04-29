@@ -64,6 +64,7 @@ package DeathRace_Minigame
 			%this.dataInstance($DR::SaveSlot).DR_totalDeaths++;
 
 		%this.DRInventoryUI_clear();
+		%this.DRInventoryUI_push("Dead");
 	}
 
 	function SimObject::setNTObjectName(%obj, %name)
