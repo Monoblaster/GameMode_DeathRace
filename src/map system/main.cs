@@ -264,6 +264,11 @@ function MapSys_SetMapNext(%stage, %file)
 			%selectionCount = 3;
 			for(%i = 1; %i <= %mapCount; %i++)
 			{
+				if($Temp::MapSys_CurrentMap $= $Server::MapSys_Map[%i])
+				{
+					continue;
+				}
+
 				if(%data $= "")
 					%data = %i;
 				else 
