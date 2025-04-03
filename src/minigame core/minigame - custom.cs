@@ -303,18 +303,16 @@ function CustomMinigameSO::Reset(%mini, %client)
 		}
 
 		%team.avoidAutoJoin = true;
+		%teamstring = %teamstring SPC %team;
 	}
-
-	%activeTeamCount = mClamp((mCeil(%mini.numMembers / 6)),2,%count-1);
+	%teamstring = lTrim(%teamstring);
+	%count = getWordCount(%teamstring);
+	%activeTeamCount = mClamp((mCeil(%mini.numMembers / 6)),2,%count);
 	for(%i = 0; %i < %activeTeamCount; %i++)
 	{
-		%team = %teams.getObject(getRandom(0,%count-1));
-		if(%team.name $= "Admin Team")
-		{
-			%activeTeamCount++;
-			continue;
-		}
-
+		%r = getRandom(0,(%count-%i)-1);
+		%team = getWord(%teamstring,%r);
+		%teamstring = removeWord(%teamstring,%r);
 		%team.avoidAutoJoin = false;
 	}
 

@@ -69,7 +69,7 @@ function MinigameSO::DR_SetSpecial(%this, %special, %group)
 			%msg = "Scrambled vehicle scales! Vehicle scales will randomize every 10 seconds.";
 
 		case "9" or "Night" or "Dark":
-			LoadEnvironmentFromFile($Pref::Server::MapChanger::Path @ "Night.txt");
+			LoadEnvironmentFromFile($Server::MapSys_Path @ "Night.txt");
 			%msg = "Night time!";
 
 		case "10" or "empty" or "fist" or "noweapons" or "no weapons":

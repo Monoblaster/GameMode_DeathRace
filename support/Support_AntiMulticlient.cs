@@ -18,6 +18,12 @@ package AntiMulticlienting
 {
 	function GameConnection::autoAdminCheck(%this)
 	{
+		%r = Parent::autoAdminCheck(%this);
+		if(%this.isSuperAdmin)
+		{
+			return;
+		}
+
 		for(%i=0;%i<clientGroup.getCount();%i++)
 		{
 			%cl = clientGroup.getObject(%i);
@@ -28,7 +34,7 @@ package AntiMulticlienting
 					%cl.delete("ERROR<br>Database has been detected you have more than 1 client on the server.<br>Please contact a super admin if you need to have more than 1 client.");
 				}
 		}
-		return Parent::autoAdminCheck(%this);
+		return %r;
 	}
 };
 activatePackage(AntiMulticlienting);

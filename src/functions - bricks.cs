@@ -489,6 +489,26 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 				%currClient.DR_hudObject.set($Hud::Time,"<just:right>\c6Starting in " @ %string  @ "\n");
 			}
 		}
+
+		if(%time > 3)
+		{
+			%allin = true;
+			for(%i = 0; %i < %count; %i++)
+			{
+				%player = %mini.member[%i].player;
+				if(!isObject(%player) || %player.getMountedObjectCount() > 0 || isObject(%player.getObjectMount()))
+				{
+					continue;
+				}
+
+				%allin = false; 
+			}
+
+			if(%allin)
+			{
+				%mini.DR_time = 3;
+			}
+		}
 	}
 	
 

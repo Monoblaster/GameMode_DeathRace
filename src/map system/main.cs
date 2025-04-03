@@ -262,24 +262,23 @@ function MapSys_SetMapNext(%stage, %file)
 			deleteVariables("$Temp::MapSys_Map*");
 			%mapCount = $Server::MapSys_MapCount;
 			%selectionCount = 3;
-			for(%i = 1; %i <= %mapCount %i++)
+			for(%i = 1; %i <= %mapCount; %i++)
 			{
 				if(%data $= "")
-					%data = $Server::MapSys_MapName[%i];
+					%data = %i;
 				else 
-					%data = %data TAB $Server::MapSys_MapName[%i];
+					%data = %data TAB %i;
 			}
-			
 			%removeCount = %mapCount - %selectionCount;
 			for(%i = 0; %i < %removeCount; %i++)
 			{
-				%data = removeField(%data,getRandom(0,%mapCount-%i));
+				%data = removeField(%data,getRandom(0,(%mapCount-%i)-1));
 			}
-
-			for(%i = 0; %i < %selectionCount; %i++)
+			%count = getFieldCount(%data);
+			for(%i = 0; %i < %count; %i++)
 			{
-				%map = getField(%data,%i);
-				announce(" \c6#\c3" @ %i @ " \c7- \c3" @ %map);
+				%map = $Server::MapSys_MapName[getField(%data,%i)];
+				announce(" \c6#\c3" @ %i + 1 @ " \c7- \c3" @ %map);
 			}
 
 			// for(%i = 0; %i < clientGroup.getCount(); %i++)
@@ -453,7 +452,7 @@ function serverCmdNextMap(%client)
 	announce(%client.getPlayerName() @ " \c6made an override to toggle a map change/vote after this round.");
 }
 
-function MapSys_SetMapVote(%maps,%time)
+function MapSys_SetMapVote(%time)
 {
 	if(%time $= "")
 		%time = $Pref::Server::MapSys_VoteTimeLimit;
@@ -469,13 +468,14 @@ function MapSys_SetMapVote(%maps,%time)
 		for(%i = 1; %i <= %count; %i++)
 		{
 			%cur = $Temp::MapSys_MapVotes[%i];
-			announce("  - \c3" @ getField(%data,%i - 1) @ " (" @ mFloor(%cur) @ (%cur != 1 ? " votes" : " vote") @ ")");
+			%index = getField(%data,%i - 1);
+			announce("  - \c3" @ $Server::MapSys_MapName[%index] @ " (" @ mFloor(%cur) @ (%cur != 1 ? " votes" : " vote") @ ")");
 			if(%cur > %votes && %cur != 0)
 			{
 				%mapTieCount = 0;
 				%votes = %cur;
-				%mapName = $Server::MapSys_MapName[%i];
-				%map = $Server::MapSys_Map[%i];
+				%mapName = $Server::MapSys_MapName[%index];
+				%map = $Server::MapSys_Map[%index];
 			}
 			else if(%cur == %votes && %votes != 0)
 			{
@@ -488,8 +488,8 @@ function MapSys_SetMapVote(%maps,%time)
 				}
 
 				%mapTieCount++;
-				%mapTieName[%mapTieCount] = $Server::MapSys_MapName[%i];
-				%mapTie[%mapTieCount] = $Server::MapSys_Map[%i];
+				%mapTieName[%mapTieCount] = $Server::MapSys_MapName[%index];
+				%mapTie[%mapTieCount] = $Server::MapSys_Map[%index];
 			}
 		}
 
@@ -503,7 +503,7 @@ function MapSys_SetMapVote(%maps,%time)
 		else if(%mapName $= "")
 		{
 			announce("\c6[\c3MP\c6] Time is up! No votes were counted! Randomizing map!");
-			%r = getRandom(1, $Server::MapSys_MapCount);
+			%r = getField(%data,getRandom(0, %count-1));
 			%mapName = $Server::MapSys_MapName[%r];
 			%map = $Server::MapSys_Map[%r];
 		}
@@ -660,14 +660,13 @@ function serverCmdV(%client, %mapNum)
 	// }
 
 	%mapNum |= 0;
-	%mapCount = getFieldCount($Temp::MapSys_MapSelection,%mapNum);
+	%mapCount = getFieldCount($Temp::MapSys_MapSelection);
 	if(%mapNum > %mapCount || %mapNum <= 0)
 	{
 		%client.chatMessage("\c6Invalid map number!");
 		return;
 	}
-	%mapName = getField($Temp::MapSys_MapSelection,getMin(%mapNum,%mapCount) - 1);
-
+	%mapName = $Server::MapSys_MapName[getField($Temp::MapSys_MapSelection,%mapNum - 1)];
 	$Temp::MapSys_MapVoteID[%client.getBLID()] = %mapName;
 	$Temp::MapSys_MapVotes[%mapNum]++;
 

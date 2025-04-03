@@ -142,7 +142,7 @@ function MinigameSO::DR_Loop(%mini)
 				%hud = %spyClient.DR_hudObject;
 			}
 
-			if(!%noHud)
+			if(!%noHud && isObject(%hud))
 			{
 				if(%isStarting || %isResetting)
 				{
