@@ -39,10 +39,24 @@ function CustomMinigameSO::sortTeams(%mini)
 	if((%teamCount = %teams.getCount()) == 0)
 		return;
 
+	%count = %mini.numMembers;
+	for(%i = 0; %i < %count; %i++)
+	{
+		%members = %members SPC %mini.member[%i];
+	}
+	%members = lTrim(%members);
+
+	for(%i = 0; %i < %count; %i++)
+	{
+		%r = getRandom(0,%count-1);
+		%temp = getWord(%members,%r);
+		%members = setWord(setWord(%members,%r,getWord(%members,%i)),%i,%temp);
+	}
+
 	if(%teamCount == 1)
 	{
 		%team = %teams.getObject(0);
-		for(%i = 0; %i < %mini.numMembers; %i++)
+		for(%i = 0; %i < %mini.count; %i++)
 		{
 			%team.addClient(%mini.member[%i], 1);
 		}
@@ -61,7 +75,7 @@ function CustomMinigameSO::sortTeams(%mini)
 		}
 		%nList = %list;
 
-		for(%i = 0; %i < %mini.numMembers; %i++)
+		for(%i = 0; %i < %count; %i++)
 		{
 			if(%nList $= "")
 				%nList = %list;
@@ -71,7 +85,7 @@ function CustomMinigameSO::sortTeams(%mini)
 
 			%nList = removeWord(%nList, %r);
 
-			%team.addClient(%mini.member[%i], 1);
+			%team.addClient(getWord(%members,%i), 1);
 		}
 	}
 

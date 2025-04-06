@@ -264,7 +264,11 @@ package DeathRace_MinigameLoop
 
 	function GameConnection::SpawnPlayer(%c)
 	{
- 		%r = parent::SpawnPlayer(%c);
+		// if(!%c.afk)
+		// {	
+			%r = parent::SpawnPlayer(%c);
+		// }
+ 		
 		%hud = %c.DR_hudObject;
 		if(isObject(%hud))
 		{
@@ -272,6 +276,7 @@ package DeathRace_MinigameLoop
 			%hud.set($Hud::VehicleSong,"");
 			%hud.set($Hud::VehicleHP,"");
 		}
+
 		return %r;
 	}
 
@@ -279,6 +284,18 @@ package DeathRace_MinigameLoop
 	{
 		%c.DR_hudObject.set($Hud::Score,"<just:left>\c6Score: \c3" @ %score);
 		return parent::SetScore(%c,%score);
+	}
+
+	function Observer::onTrigger(%this, %obj, %trigger, %state)
+	{
+		// %client = %obj.getControllingClient();
+		// %mini = %client.minigame;
+		// if(%mini.isStartingDR)
+		// {
+		// 	%client.afk = false;
+		// 	%client.spawnPlayer();
+		// }
+		return Parent::onTrigger(%this, %obj, %trigger, %state);
 	}
 
 	function Armor::onMount(%this, %obj, %vehicle, %node)

@@ -274,10 +274,11 @@ function MapSys_SetMapNext(%stage, %file)
 				else 
 					%data = %data TAB %i;
 			}
-			%removeCount = %mapCount - %selectionCount;
+			%datacount = getFieldCount(%data);
+			%removeCount = %datacount  - %selectionCount;
 			for(%i = 0; %i < %removeCount; %i++)
 			{
-				%data = removeField(%data,getRandom(0,(%mapCount-%i)-1));
+				%data = removeField(%data,getRandom(0,(%datacount-%i)-1));
 			}
 			%count = getFieldCount(%data);
 			for(%i = 0; %i < %count; %i++)

@@ -462,6 +462,7 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 					if(vectorDist(%player.getPosition(), %player.DR_SpawnPosition) < 5)
 					{
 						%player.kill();
+						%currClient.afk = true;
 						continue;
 					}
 

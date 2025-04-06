@@ -58,7 +58,7 @@ function CustomMinigameSO::onMaxRoundLimit(%mini)
 
 function CustomMinigameSO::onPreRoundStart(%mini)
 {
-	
+	shuffleMusicCache();
 }
 
 function CustomMinigameSO::onPreSpawn(%mini, %client)
