@@ -1,5 +1,5 @@
 // Ones you should edit: Replace CustomMinigameSO with your own class
-
+$Deathrace::PlayersPerTeam = 6;
 function CustomMinigameSO::onCreate(%mini)
 {
 	if(!isObject(%mini.games))
@@ -307,7 +307,7 @@ function CustomMinigameSO::Reset(%mini, %client)
 	}
 	%teamstring = lTrim(%teamstring);
 	%count = getWordCount(%teamstring);
-	%activeTeamCount = mClamp((mCeil(%mini.numMembers / 6)),2,%count);
+	%activeTeamCount = mClamp((mCeil(%mini.numMembers / $Deathrace::PlayersPerTeam)),2,%count);
 	for(%i = 0; %i < %activeTeamCount; %i++)
 	{
 		%r = getRandom(0,(%count-%i)-1);
