@@ -502,6 +502,14 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 					continue;
 				}
 
+				%start = %player.getHackPosition();
+				%end = vectorSub(%start,"0 0 100");
+				%ray = containerRayCast(%start, %end, $TypeMasks::FxBrickObjectType);
+				if(isObject(%ray) && %time < 40 && %ray.getDatablock().getName() $= "brickSpawnPointData")
+				{
+					continue;
+				}
+
 				%allin = false; 
 			}
 
