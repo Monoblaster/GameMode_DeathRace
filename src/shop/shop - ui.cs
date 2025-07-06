@@ -138,6 +138,7 @@ function purchaseTool(%client,%item,%notRoundStart)
 	%cost = ToolCost(%client,%obj,%notRoundStart);
 	if(%cost > %client.score)
 	{
+		%this.chatMessage("Cannot afford");
 		return false;
 	}
 
@@ -627,10 +628,13 @@ function ShopPurchaseItem(%client)
 		return;
 	}
 
-	purchaseTool(%client,%item.uiName,true);
-	%replaceSlot = %client.DRInventoryUI_ShopReplaceSlot;
-	%player.tool[%replaceSlot] = %item;
-	messageClient(%client,'MsgItemPickup','',%replaceSlot,%item,true);
+	if(purchaseTool(%client,%item.uiName,true))
+	{
+		%replaceSlot = %client.DRInventoryUI_ShopReplaceSlot;
+		%player.tool[%replaceSlot] = %item;
+		messageClient(%client,'MsgItemPickup','',%replaceSlot,%item,true);
+	}
+	
 }
 
 function DRInventoryUI_ConfirmPrint(%client,%inv,%slot)

@@ -41,6 +41,31 @@ package DeathRace_Vehicle
 				}
 
 			if(!%obj.getWheelPowered(2)) %damage = 0;
+
+			%sourceTeam = %sourceObject.sourceObject.client.team;
+			if(!isObject(%sourceTeam))
+			{
+				%sourceTeam = %sourceObject.sourceClient.team;
+			}
+
+			if(!isObject(%sourceTeam))
+			{
+				%sourceTeam = %sourceObject.client.team;
+			}
+
+			if(isObject(%sourceTeam))
+			{
+				%mounted = %obj.getMountedObjects();
+				%count = getWordCount(%mounted);
+				for(%i = 0; %i < %count; %i++)
+				{
+					if(getWord(%mounted,%i).client.team == %sourceTeam)
+					{
+						%damage = 0;
+						break;
+					}
+				}
+			}	
 		}
 
 		return Parent::damage(%obj,%sourceObject,%position,%damage,%damageType,%damageLoc);
