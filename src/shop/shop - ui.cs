@@ -650,84 +650,87 @@ function DRInventoryUI_Confirm(%client,%inv,%slot)
 	%client.DRInventoryUI_pop();
 }
 
+function ShopEquioment_Select(%stack,%slot)
+{
+
+}
+
+function ShopEquioment_Select(%stack,%slot)
+{
+
+}
+
 function DRInventoryUI_Init()
 {
-	if(isObject($DRInventoryUI))
-	{
-		$DRInventoryUI.delete();
-	}
-	$DRInventoryUI = new ScriptObject(){class = "DRInventoryManager";};
-
-	%o = Inventory_Create();
+	%inv = Inventory_Create("Equipment");
+	%inv.cantClose = true;
 	%c = -1;
-	%o.set(%c++,DRInventoryUIPrimary);
-	%o.set(%c++,DRInventoryUISecondary);
-	%o.set(%c++,DRInventoryUIMelee);
-	%o.set(%c++,DRInventoryUISupport);
-	%o.set(%c++,DRInventoryUISave);
-	%o.set(%c++,DRInventoryUILoad);
-	%o.print = "DRInventoryUI_SpawnPrint";
-	%o.next = "DRInventoryUI_SpawnNext";
-	%o.cantClose = true;
-	%o.displayTools = true;
-	$DRInventoryUI.add(%o,"Dead");
+	%inv.set(%c++,DRInventoryUIPrimary);
+	%inv.set(%c++,DRInventoryUISecondary);
+	%inv.set(%c++,DRInventoryUIMelee);
+	%inv.set(%c++,DRInventoryUISupport);
+	%inv.set(%c++,DRInventoryUISave);
+	%inv.set(%c++,DRInventoryUILoad);
+	%o.select = "ShopEquipment_Select";
+	%o.use = "ShopEquipment_Use";
+	%o.display = "ShopEquioment_Display";
 	
-	%o = Inventory_Create();
-	%o.set(6,DRInventoryUIEquipmentEditor);
-	%o.print = "DRInventoryUI_SpawnPrint";
-	%o.next = "DRInventoryUI_SpawnNext";
-	%o.cantClose = true;
-	%o.displayTools = true;
-	%o.canUseItems = true;
-	$DRInventoryUI.add(%o,"Spawn");
+	// %o = Inventory_Create();
+	// %o.set(6,DRInventoryUIEquipmentEditor);
+	// %o.print = "DRInventoryUI_SpawnPrint";
+	// %o.next = "DRInventoryUI_SpawnNext";
+	// %o.cantClose = true;
+	// %o.displayTools = true;
+	// %o.canUseItems = true;
+	// $DRInventoryUI.add(%o,"Spawn");
 
-	%o = Inventory_Create();
-	%c = -1;
-	%o.set(%c++,DRInventoryUIPrimary);
-	%o.set(%c++,DRInventoryUISecondary);
-	%o.set(%c++,DRInventoryUIMelee);
-	%o.set(%c++,DRInventoryUISupport);
-	%o.set(%c++,DRInventoryUISave);
-	%o.set(%c++,DRInventoryUILoad);
-	%o.print = "DRInventoryUI_EquipmentEditorPrint";
-	%o.next = "DRInventoryUI_EquipmentEditorNext";
-	%o.displayTools = true;
-	$DRInventoryUI.add(%o,"EquipmentEditor");
+	// %o = Inventory_Create();
+	// %c = -1;
+	// %o.set(%c++,DRInventoryUIPrimary);
+	// %o.set(%c++,DRInventoryUISecondary);
+	// %o.set(%c++,DRInventoryUIMelee);
+	// %o.set(%c++,DRInventoryUISupport);
+	// %o.set(%c++,DRInventoryUISave);
+	// %o.set(%c++,DRInventoryUILoad);
+	// %o.print = "DRInventoryUI_EquipmentEditorPrint";
+	// %o.next = "DRInventoryUI_EquipmentEditorNext";
+	// %o.displayTools = true;
+	// $DRInventoryUI.add(%o,"EquipmentEditor");
 
-	%c = -1;
-	%o = Inventory_Create();
-	%o.set(%c++,DRInventoryUISlotOne);
-	%o.set(%c++,DRInventoryUISlotTwo);
-	%o.set(%c++,DRInventoryUISlotThree);
-	%o.print = "DRInventoryUI_SavePrint";
-	%o.use = "DRInventoryUI_Save";
-	$DRInventoryUI.add(%o,"Save");
+	// %c = -1;
+	// %o = Inventory_Create();
+	// %o.set(%c++,DRInventoryUISlotOne);
+	// %o.set(%c++,DRInventoryUISlotTwo);
+	// %o.set(%c++,DRInventoryUISlotThree);
+	// %o.print = "DRInventoryUI_SavePrint";
+	// %o.use = "DRInventoryUI_Save";
+	// $DRInventoryUI.add(%o,"Save");
 
-	%c = -1;
-	%o = Inventory_Create();
-	%o.set(%c++,DRInventoryUISlotOne);
-	%o.set(%c++,DRInventoryUISlotTwo);
-	%o.set(%c++,DRInventoryUISlotThree);
-	%o.print = "DRInventoryUI_LoadPrint";
-	%o.use = "DRInventoryUI_Load";
-	$DRInventoryUI.add(%o,"Load");
+	// %c = -1;
+	// %o = Inventory_Create();
+	// %o.set(%c++,DRInventoryUISlotOne);
+	// %o.set(%c++,DRInventoryUISlotTwo);
+	// %o.set(%c++,DRInventoryUISlotThree);
+	// %o.print = "DRInventoryUI_LoadPrint";
+	// %o.use = "DRInventoryUI_Load";
+	// $DRInventoryUI.add(%o,"Load");
 
-	%c = -1;
-	%o = Inventory_Create();
-	%o.set(0,DRInventoryUINext);
-	%o.display = "DRInventoryUI_ShopDisplay";
-	%o.print = "DRInventoryUI_ShopPrint";
-	%o.push = "DRInventoryUI_ShopPush";
-	%o.use = "DRInventoryUI_Shop";
-	%o.overlay = true;
-	$DRInventoryUI.add(%o,"ShopOverlay");
+	// %c = -1;
+	// %o = Inventory_Create();
+	// %o.set(0,DRInventoryUINext);
+	// %o.display = "DRInventoryUI_ShopDisplay";
+	// %o.print = "DRInventoryUI_ShopPrint";
+	// %o.push = "DRInventoryUI_ShopPush";
+	// %o.use = "DRInventoryUI_Shop";
+	// %o.overlay = true;
+	// $DRInventoryUI.add(%o,"ShopOverlay");
 
-	%c = -1;
-	%o = Inventory_Create();
-	%o.set(0,DRInventoryUIConfirm);
-	%o.print = "DRInventoryUI_ConfirmPrint";
-	%o.use = "DRInventoryUI_Confirm";
-	$DRInventoryUI.add(%o,"Confirm");
+	// %c = -1;
+	// %o = Inventory_Create();
+	// %o.set(0,DRInventoryUIConfirm);
+	// %o.print = "DRInventoryUI_ConfirmPrint";
+	// %o.use = "DRInventoryUI_Confirm";
+	// $DRInventoryUI.add(%o,"Confirm");
 }
 DRInventoryUI_Init();
 
@@ -758,79 +761,6 @@ function DRInventoryUI_ShopInit()
 	$DRInventoryUI_ShopSupport = %o;
 }
 schedule(1000,0,"DRInventoryUI_ShopInit");
-
-function GameConnection::DRInventoryUI_push(%client,%inv)
-{
-	commandToClient(%client,'SetActiveTool',0);
-	%client.DRInventoryUI_stack = trim(%inv SPC %client.DRInventoryUI_stack);
-	call($DRInventoryUI.get(%inv).push,%client,%inv,0);
-	%client.DRInventoryUI_display();
-}
-
-function GameConnection::DRInventoryUI_pop(%client)
-{
-	commandToClient(%client,'SetActiveTool',0);
-	%client.DRInventoryUI_stack = removeWord(%client.DRInventoryUI_stack,0);
-	%client.DRInventoryUI_display();
-	call($DRInventoryUI.get(%inv).pop,%client,%inv,0);
-}
-
-function GameConnection::DRInventoryUI_clear(%client)
-{
-	%client.DRInventoryUI_stack = "";
-	%client.DRInventoryUI_display();
-}
-
-function GameConnection::DRInventoryUI_peek(%client,%n)
-{
-	return $DRInventoryUI.get(getWord(%client.DRInventoryUI_stack,%n));
-}
-
-function GameConnection::DRInventoryUI_top(%client)
-{
-	return $DRInventoryUI.get(firstWord(%client.DRInventoryUI_stack));
-}
-
-function GameConnection::DRInventoryUI_display(%client)
-{
-	%client.centerPrint("");
-	%curr = %client.DRInventoryUI_top();
-
-	if(%curr $= "")
-	{
-		%client.currUi = "";
-		%player = %client.player;
-		if(isObject(%player))
-		{
-			Inventory::Display(%player,%client,true);
-			return;
-		}
-		Inventory::Display(%client,%client,true);
-		return;
-	}
-
-	call(%curr.display,%client,%curr,%client.currInvSlot);
-	%curr.display(%client,!%curr.overlay);
-
-	%player = %client.player;
-	if(isObject(%player))
-	{
-		serverCmdUseTool(%client,%player.currTool);
-		if(%curr.displayTools)
-		{
-			Inventory::Display(%player,%client);
-		}
-
-		if(!%curr.canUseItems)
-		{
-			%player.currTool = -1;
-			%client.currInv = -1;
-			%client.currInvSlot = -1;
-			%player.unmountImage(0);
-			%player.playThread (1, root);
-		}
-	}
-}
 
 package DRInventoryUI
 {

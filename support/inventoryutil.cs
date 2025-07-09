@@ -4,11 +4,11 @@ if(!isObject($InventoryUI::Set))
 	$inventoryUI::Set = new SimSet();
 }
 
-function Inventory(%name)
+function Inventory_Create(%name)
 {
 	if(isObject(%name SPC "Inventory"))
 	{
-		return (%name SPC "Inventory").getId();
+		(%name SPC "Inventory").delete();
 	}
 
 	return new ScriptObject(%name SPC "Inventory")
@@ -16,6 +16,14 @@ function Inventory(%name)
 		class = "Inventory";
 		name = %name;
 	};
+}
+
+function Inventory_Get(%name)
+{
+	if(isObject(%name SPC "Inventory"))
+	{
+		return (%name SPC "Inventory").getId();
+	}
 }
 
 function Inventory::OnAdd(%obj)
@@ -62,69 +70,95 @@ function Inventory::Display(%inv,%client,%writeBlank,%offset)
 }
 
 // INVENTORY STACK
-function InventoryStack::Push(%stack,%inv)
+function INventoryStack_Create(%client)
 {
-	%stack.active = %inv;
-	if(!%inv.dontAutoOpen)
+	%obj = new ScriptObject()
+	{
+		class = "InventoryStack";
+		client = %client;
+	};
+	return %obj;
+}
+
+function InventoryStack::OnAdd(%obj)
+{	
+	%client = %obj.client;
+	if(!isObject(%client) && %client.getClassName() !$= "GameConnection")
+	{
+		error("Non client client" SPC %client);
+		return;
+	}
+
+	if(isObject(%client.InventoryStack))
+	{
+		%client.InventoryStack.delete();
+	}
+	%client.InventoryStack = %obj;
+}
+
+function InventoryStack::Push(%stack,%invname)
+{
+	%invobj = Inventory_Get(%invname);
+	if(!%invobj.dontAutoOpen)
 	{
 		commandToClient(%stack.client,'SetActiveTool',0);
 	}
-	%stack.set.add(%inv);
-	%stack.set.bringToFront(%inv);
+	%stack.list = ltrim(%invname SPC %stack.list);
+	%stack.first = %invname;
 	call(%inv.push,%stack);
 	%stack.display();	
 }
 
 function InventoryStack::Pop(%stack)
 {
-	%first = %stack.set.getObject(0);
-	%stack.set.pushToBack(%first);
-	%stack.set.remove(%first);
-	%stack.active = "";
-	if(%stack.set.getCount() > 0)
+	%poppedinvobj = Inventory_Get(firstWord(%stack.list));
+	%stack.list = removeWord(%stack.list,0);
+	if(%stack.list !$= "")
 	{
-		%stack.active = %stack.set.getObject(0);
+		%first = firstWord(%stack.list);
+		%stack.first = %first;
+		%currinvobj = Inventory_Get(%first);
 	}
 
-	if(!%stack.active.dontAutoOpen)
+	if(!%currinvobj.active.dontAutoOpen)
 	{
 		commandToClient(%stack.client,'SetActiveTool',0);
 	}
 	%stack.display();
-	call(%inv.pop,%stack);
+	call(%poppedinvobj.pop,%stack);
 }
 
 function InventoryStack::Clear(%stack)
 {
-	%stack.active = "";
-	%stack.set.delete();
-	%stack.set = new SimSet();
+	%stack.first = "";
+	%stack.list = "";
 }
 
 function InventoryStack::Peek(%stack,%n)
 {
-	return %stack.set.GetObject(%n + 0);
+	return getWord(%stack.list,%n);
 }
 
 function InventoryStack::Print(%stack)
 {
-	%curr = %stack.active;
+	%first = %stack.first;
 	%slot = %stack.client.currtool;
-	if(%curr $= "")
+	if(%first $= "")
 	{
 		return;
 	}
 
-	if(!%curr.cantClose)
+	%invobj = Inventory_Get(%first);
+	if(!%invobj.cantClose)
 	{
 		%controls = "Close to cancel";
 	}
 
-	if(%slot != -1 && isObject(%curr.tool[%slot]) || !%curr.dontOverwrite)
+	if(%slot != -1 && isObject(%invobj.tool[%slot]) || !%invobj.dontOverwrite)
 	{
 		%controls = "\c4Click to use" NL %controls;
 	}
-	%stack.client.centerPrint(trim(call(%curr.select,%stack,%slot) NL %controls));
+	%stack.client.centerPrint(trim(call(%invobj.select,%stack,%slot) NL %controls));
 }
 
 function InventoryStack::Display(%stack)
@@ -132,7 +166,7 @@ function InventoryStack::Display(%stack)
 	%client = %stack.client;
 	%player = %client.player;
 	%client.centerPrint("");
-	%curr = %stack.active;
+	%first = %stack.first;
 
 	if(%curr $= "")
 	{
@@ -145,13 +179,14 @@ function InventoryStack::Display(%stack)
 		return;
 	}
 
-	if(isFunction(%curr.display))
+	%invobj = Inventory_Get(%first);
+	if(isFunction(%invobj.display))
 	{
-		call(%curr.display,%stack,%client.currTool);
+		call(%invobj.display,%stack,%client.currTool);
 		return;
 	}
 	
-	if(%curr.canUseTools && isObject(%player))
+	if(%invobj.canUseTools && isObject(%player))
 	{
 		serverCmdUseTool(%client,%player.currTool);
 	}
@@ -162,39 +197,22 @@ function InventoryStack::Display(%stack)
 		%player.playThread (1, root);
 	}
 
-	%curr.display(%client,!%curr.dontOverwrite);
+	%invobj.display(%client,!%invobj.dontOverwrite);
 }
 
 package InventoryStack
 {
-	function GameConnection::onClientEnterGame(%client)
-	{
-		%obj = new ScriptObject()
-		{
-			class = "InventoryStack";
-			client = %client;
-			active = "";
-		};
-		%obj.set = new SimSet();
-		%client.InventoryStack = %obj;
-		return parent::onClientEnterGame(%client);
-	}
-
-	function GameConnection::onDrop(%client, %reason)
-	{
-		%client.InventoryStack.set.delete();
-		%client.InventoryStack.delete();
-		return parent::onDrop(%client,%reason);
-	}
-
 	function serverCmdUnUseTool(%client)
 	{
-		if(%client.InventoryStack.active !$= "")
+		%stack = %client.InventoryStack;
+		%first = %stack.first;
+		if(%first !$= "")
 		{
 			%client.centerPrint("");
-			if(!%client.InventoryStack.active.cantClose)
+			%invobj = Inventory_Get(%first);
+			if(!%invobj.cantClose)
 			{
-				%client.InventoryStack.pop();
+				%stack.pop();
 			}
 		}
 		
@@ -203,22 +221,24 @@ package InventoryStack
 
 	function serverCmdUseTool(%client,%slot)
 	{
-		%curr = %client.InventoryStack.active;
-		if(%curr !$= "")
+		%stack = %client.InventoryStack;
+		%first = %stack.first;
+		if(%first !$= "")
 		{
-			if(!%curr.cantClose)
+			%invobj = Inventory_Get(%first);
+			if(!%invobj.cantClose)
 			{
 				%controls = "Close to cancel";
 			}
 
-			if(%slot != -1 && isObject(%curr.tool[%slot]) || !%curr.dontOverwrite)
+			if(%slot != -1 && isObject(%invobj.tool[%slot]) || !%invobj.dontOverwrite)
 			{
 				%client.currTool = %slot;
 				%client.player.currTool = %slot;
 				%controls = "\c4Click to use" NL %controls;
 				%slot = -1;
 			}
-			%client.centerPrint(trim(call(%curr.select,%client.InventoryStack,%client.currTool) NL %controls));
+			%client.centerPrint(trim(call(%invobj.select,%client.InventoryStack,%client.currTool) NL %controls));
 
 			%player = %client.player;
 			if(%slot == -1 && isobject(%player))
@@ -227,7 +247,7 @@ package InventoryStack
 				fixArmReady(%player);
 			}
 
-			if(!%curr.canUseTools)
+			if(!%invobj.canUseTools)
 			{
 				return;
 			}
@@ -241,9 +261,12 @@ package InventoryStack
 		%client = %obj.getControllingClient();
 		if(isObject(%client) && %num == 0 && %down)
 		{
-			if(%client.currTool >= 0 && %client.InventoryStack.active !$= "")
+			%stack = %client.InventoryStack;
+			%first = %stack.first;
+			if(%client.currTool >= 0 && %first !$= "")
 			{
-				call(%client.InventoryStack.active.use,%client.InventoryStack,%client.currTool);
+				%invobj = Inventory_Get(%first);
+				call(%invobj.use,%stack,%client.currTool);
 				return;
 			}
 		}
@@ -255,9 +278,12 @@ package InventoryStack
 		%client = %obj.getControllingClient();
 		if(isObject(%client) && %num == 0 && %down)
 		{
-			if(%client.currTool >= 0 && %client.InventoryStack.active !$= "")
+			%stack = %client.InventoryStack;
+			%first = %stack.first;
+			if(%client.currTool >= 0 && %first !$= "")
 			{
-				call(%client.InventoryStack.active.use,%client.InventoryStack,%client.currTool);
+				%invobj = Inventory_Get(%first);
+				call(%invobj.use,%stack,%client.currTool);
 				return;
 			}
 		}
