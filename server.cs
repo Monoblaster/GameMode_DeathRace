@@ -63,6 +63,10 @@ $Server::Name = "DeathRace";
 $Pref::Server::MaxPlayers = 48;
 
 HorseArmor.maxForwardSpeed = 30;
+HorseArmor.canRide = 1;
+HorseArmor.maxTools = 8;
+HorseArmor.maxItems = 10;
+HorseArmor.runSurfaceAngle = 90;
 gc_PumaVehicle.maxWheelSpeed = 30;
 
 function createGameModeMusicDataBlocks ()

@@ -467,14 +467,10 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 					}
 
 					%currClient.dataInstance($DR::SaveSlot).DR_totalRounds++;
-					if(!DRInventoryUI_Ready(%currClient,true,false))
-					{
-						%currClient.chatMessage("\c6Loading default loadout for the race");
-						%player.Shop_LoadList($DR::DefaultLoadout);
-						DRInventoryUI_Ready(%currClient,false,false);
-					}
+					DRMenu_PayPreset(%currClient);
+
+					%currClient.InventoryStack.clear();
 				}
-				%currClient.DRInventoryUI_clear();
 			}
 		}
 	}

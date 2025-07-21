@@ -106,9 +106,8 @@ function GameConnection::Shop_Spawn(%this)
 		return;
 	}
 	
-	%player.Shop_LoadList(%this.dataInstance($DR::SaveSlot).LastLoadOut);
-	%this.DRInventoryUI_clear();
-	%this.DRInventoryUI_push("Spawn");
+	DRMenu_EquipPreset(%this);
+	%this.InventoryStack.push("Spawn");
 }
 
 function GameConnection::Shop_SetData(%this)

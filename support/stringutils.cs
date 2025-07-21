@@ -57,22 +57,6 @@ function setString(%s,%sep,%a,%v)
 	return %r @ %v @ %sep @ %s;
 }
 
-function findString(%s,%sep,%v)
-{
-	%temp = "";
-	%a = getWordCount(%s);
-	%s = nextToken(%s,"t",%sep);
-	for(%i = 0; %i < %a; %i++)
-	{
-		if(%t $= %v)
-		{
-			return %i;
-		}
-		%s = nextToken(%s,"t",%sep);
-	}
-	return -1;
-}
-
 function sortStrings(%s,%sep,%comp)
 {
 	%count = getStringCount(%s,%sep);
@@ -130,7 +114,7 @@ function stringList(%s,%listSep,%comma,%type)
 		%w = getString(%s,%listSep,%j);
 		%s = setString(%s,%listSep,%j,%w @ %lists);
 	}
-	return %s;
+	return trim(strReplace(%s,%listSep," "));
 }
 
 function sortRecords(%s,%comp)

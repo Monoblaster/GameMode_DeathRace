@@ -1,9 +1,4 @@
 // DeathRace file
-
-HorseArmor.canRide = 1;
-HorseArmor.maxTools = 8;
-HorseArmor.maxItems = 10;
-
 function MinigameSO::DR_SetSpecial(%this, %special, %group)
 {
 	if(!isObject(%group))

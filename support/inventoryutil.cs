@@ -6,12 +6,16 @@ if(!isObject($InventoryUI::Set))
 
 function Inventory_Create(%name)
 {
-	if(isObject(%name SPC "Inventory"))
+	if(%name !$= "")
 	{
-		(%name SPC "Inventory").delete();
+		%objectName = %name SPC "Inventory";
+		if(isObject(%objectName))
+		{
+			%objectName.delete();
+		}
 	}
 
-	return new ScriptObject(%name SPC "Inventory")
+	return new ScriptObject(%objectName)
 	{
 		class = "Inventory";
 		name = %name;
@@ -31,18 +35,39 @@ function Inventory::OnAdd(%obj)
 	$inventoryUI::Set.add(%obj);
 }
 
-$Inventory::Empty = Inventory("Empty");
+$Inventory::Empty = Inventory_Create("Empty");
 
 function Inventory::Set(%inv,%slot,%db)
 {
 	%inv.tool[%slot] = %db;
-
+	%maxslot = %inv.maxslot;
+	if(isObject(%db))
+	{
+		%inv.maxslot = getMax(%maxslot,%slot);
+	}
+	else
+	{
+		for(%i = %maxSlot; %i >= 0; %i--)
+		{
+			if(isObject(%inv.tool[%i]))
+			{
+				break;
+			}
+		}
+		%inv.maxSlot = %i;
+	}
+	
 	return %inv;
 }
 
 function Inventory::Get(%inv,%slot)
 {
 	return %inv.tool[%slot];
+}
+
+function Inventory::Count(%inv)
+{
+	return %inv.maxSlot + 1;
 }
 
 function Inventory::Display(%inv,%client,%writeBlank,%offset)
@@ -64,7 +89,6 @@ function Inventory::Display(%inv,%client,%writeBlank,%offset)
 		{
 			%tool = %tool.getId();
 		}
-
 		messageClient(%client,'MsgItemPickup',"",%i,%tool,1);
 	}
 }
@@ -119,24 +143,37 @@ function InventoryStack::Pop(%stack)
 		%stack.first = %first;
 		%currinvobj = Inventory_Get(%first);
 	}
+	else
+	{
+		%stack.first = "";
+	}
 
 	if(!%currinvobj.active.dontAutoOpen)
 	{
 		commandToClient(%stack.client,'SetActiveTool',0);
 	}
-	%stack.display();
 	call(%poppedinvobj.pop,%stack);
+	$Inventory::Empty.display(%stack.client,true);
+	%stack.display();
 }
 
 function InventoryStack::Clear(%stack)
 {
-	%stack.first = "";
-	%stack.list = "";
+	%list = %stack.list;
+	%count = getWordCount(%list);
+	for(%i = 0; %i < %count; %i++)
+	{
+		%stack.pop();
+	}
 }
 
 function InventoryStack::Peek(%stack,%n)
 {
-	return getWord(%stack.list,%n);
+	%peeked = getWord(%stack.list,%n);
+	if(%peeked !$= "")
+	{
+		return Inventory_Get(%peeked);
+	}
 }
 
 function InventoryStack::Print(%stack)
@@ -166,9 +203,9 @@ function InventoryStack::Display(%stack)
 	%client = %stack.client;
 	%player = %client.player;
 	%client.centerPrint("");
-	%first = %stack.first;
 
-	if(%curr $= "")
+	%first = %stack.first;
+	if(%first $= "")
 	{
 		if(isObject(%player))
 		{
@@ -196,7 +233,6 @@ function InventoryStack::Display(%stack)
 		%player.unmountImage(0);
 		%player.playThread (1, root);
 	}
-
 	%invobj.display(%client,!%invobj.dontOverwrite);
 }
 

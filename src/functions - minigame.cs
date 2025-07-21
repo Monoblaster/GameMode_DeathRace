@@ -33,6 +33,7 @@ package DeathRace_Minigame
 
 		Parent::addMember(%this, %member);
 		%member.Deathrace_Load();
+		InventoryStack_Create(%member);
 		%member.setMaxTools(7);
 		
 		%member.TotalPlayTime = $Sim::time;
@@ -42,7 +43,7 @@ package DeathRace_Minigame
 	{
 		%member.DeathRace_Save();
 		%member.clearMaxTools();
-		%member.DRInventoryUI_clear();
+		%member.InventoryStack.clear();
 		%member.TotalPlayTime = $Sim::Time;
 		Parent::removeMember(%this, %member);
 	}
@@ -63,8 +64,9 @@ package DeathRace_Minigame
 		if(%damageType != $DamageType::AFK)
 			%this.dataInstance($DR::SaveSlot).DR_totalDeaths++;
 
-		%this.DRInventoryUI_clear();
-		%this.DRInventoryUI_push("Dead");
+		%this.InventoryStack.clear();
+		%this.InventoryStack.display();
+		%this.InventoryStack.push("Spawn");
 	}
 
 	function SimObject::setNTObjectName(%obj, %name)
