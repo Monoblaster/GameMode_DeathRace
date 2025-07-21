@@ -206,7 +206,7 @@ function DRShopSO::Load(%this)
 		"func_call Horse");
 
 	registerDRShopItem("Post-Apoc Fordor", 
-		"image" SPC $Deathrace::Icons @ "apocfourdoor.png" TAB
+		"image" SPC $Deathrace::Icons @ "apocfourdoor" TAB
 		"shopClass Vehicles" TAB
 		"cannotModify 1" TAB
 		"cost 22" TAB
@@ -215,7 +215,7 @@ function DRShopSO::Load(%this)
 		"func_call Post-Apoc Fordor");
 
 	registerDRShopItem("Post-Apoc Pickup", 
-		"image" SPC $Deathrace::Icons @ "apocpickup.png" TAB
+		"image" SPC $Deathrace::Icons @ "apocpickup" TAB
 		"shopClass Vehicles" TAB
 		"cannotModify 1" TAB
 		"cost 18" TAB
@@ -224,7 +224,7 @@ function DRShopSO::Load(%this)
 		"func_call Post-Apoc Pickup");
 
 	registerDRShopItem("Skateboard", 
-		"image" SPC $Deathrace::Icons @ "skateboard.png" TAB
+		"image" SPC $Deathrace::Icons @ "skateboard" TAB
 		"shopClass Vehicles" TAB
 		"cannotModify 1" TAB
 		"cost 1" TAB
@@ -234,7 +234,7 @@ function DRShopSO::Load(%this)
 		"func_call Skateboard");
        
     registerDRShopItem("Euro Turbo", 
-		"image" SPC $Deathrace::Icons @ "euro.png" TAB
+		"image" SPC $Deathrace::Icons @ "euro" TAB
 		"shopClass Vehicles" TAB
 		"cannotModify 1" TAB
 		"cost 3" TAB
@@ -244,7 +244,7 @@ function DRShopSO::Load(%this)
 		"func_call Euro Turbo");
 
 	registerDRShopItem("Jeep", 
-		"image" SPC $Deathrace::Icons @ "jeep.png" TAB
+		"image" SPC $Deathrace::Icons @ "jeep" TAB
 		"shopClass Vehicles" TAB
 		"cannotModify 1" TAB
 		"cost 1" TAB
@@ -253,7 +253,7 @@ function DRShopSO::Load(%this)
 		"func_call Jeep");
 
 	registerDRShopItem("Phantom", 
-		"image" SPC $Deathrace::Icons @ "phantom.png" TAB
+		"image" SPC $Deathrace::Icons @ "phantom" TAB
 		"shopClass Vehicles" TAB
 		"cannotModify 1" TAB
 		"cost 2" TAB
@@ -262,7 +262,7 @@ function DRShopSO::Load(%this)
 		"func_call Phantom");
 
 	registerDRShopItem("Oldtimer", 
-		"image" SPC $Deathrace::Icons @ "oldtimer.png" TAB
+		"image" SPC $Deathrace::Icons @ "oldtimer" TAB
 		"shopClass Vehicles" TAB
 		"cannotModify 1" TAB
 		"cost 5" TAB
@@ -271,7 +271,7 @@ function DRShopSO::Load(%this)
 		"func_call Oldtimer");
 
 	registerDRShopItem("Tank", 
-		"image" SPC $Deathrace::Icons @ "tank.png" TAB
+		"image" SPC $Deathrace::Icons @ "tank" TAB
 		"shopClass Vehicles" TAB
 		"cannotModify 1" TAB
 		"cost 35" TAB
@@ -335,8 +335,8 @@ function DRShopItem::onAdd(%this)
 	%item = %this.item;
 	if(!isObject(%item))
 	{
-		%item = findItemByName(%this.uiname);
-		if(!isObject(%item))
+		%item = findItemByName(%this.uiname,"",true);
+		if(!isObject(%item) && %item.getClassName() $="")
 		{
 			eval("datablock ItemData("@ %this.getName() @"Item){uiname = %this.uiname;iconName = %this.image;};");
 			%item = (%this.getName() @ "Item");

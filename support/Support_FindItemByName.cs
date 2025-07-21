@@ -11,7 +11,7 @@
 //|																											|\\
 //+=========================================================================================================+\\
 
-function findItemByName(%item, %val)
+function findItemByName(%item, %val,%exact)
 {
 	if(isObject(%item))
 		return %item.getName();
@@ -59,10 +59,10 @@ function findItemByName(%item, %val)
 					%result["id"] = 1;
 					%result["id", "item"] = %objA;
 				}
-				else
+				else if(!%exact)
 				{
 					%pos = striPos(%objA.uiName, %item);
-					if(striPos(%objA.uiName, %item) >= 0 && %pos < %result["string", "pos"])
+					if(%pos >= 0 && %pos < %result["string", "pos"])
 					{
 						%result["string"] = 1;
 						%result["string", "item"] = %objA;

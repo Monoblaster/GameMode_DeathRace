@@ -71,6 +71,12 @@ datablock ItemData(DRMenuNone)
 	uiname = "None";
 };
 
+datablock ItemData(DRMenuNewJeep)
+{
+	uiname = "New Jeep";
+	iconName = $Deathrace::Icons @ "newjeep";
+};
+
 datablock ItemData(DRMenuYes)
 {
 	uiname = "Yes";
@@ -170,7 +176,7 @@ function ToolCost(%client,%item,%notRoundStart)
 	return 0;
 }
 
-function formatItem(%item,%c,%desc,%purchaseinfo)
+function formatItem(%item,%c,%desc)
 {
 	%data = %c.dataInstance($DR::SaveSlot);
 	%script = %item.shopobj;
@@ -199,35 +205,6 @@ function formatItem(%item,%c,%desc,%purchaseinfo)
 	if(%desc)
 	{
 		%append = %append NL "\c6" @  %script.description;
-	}
-
-	if(%purchaseInfo)
-	{
-		if(%script.buyOnce)
-		{
-			%append = %append NL "\c5Single-time pruchase";
-		}
-		else
-		{
-			%append = %append NL "\c5MUST BE REBOUGHT";
-		}
-
-		if(!%script.buyOnce)
-		{
-			%append = %append NL "\c3Equip and purchase at roundstart";
-		}
-		else if(%data.boughtItem[%shopName])
-		{
-			%append = %append NL "\c3Equip";
-		}	
-		else if(%script.cost + 0 > %c.score)
-		{
-			%append = %append NL "\c0Not enough points";
-		}
-		else
-		{
-			%append = %append NL "\c3Purchase";
-		}
 	}
 
 	return %append;
@@ -430,16 +407,19 @@ function DRMenu_EquipmentSelect(%stack,%slot)
 	case %c++:
 		%s = "Switch your current loadout";
 	}
-	%s = "\c3" @ %s;
+	%s = "<font:palatino linotype:24>\c3" @ %s;
 	
 	%preset = %client.EquipPreset[%client.dataInstance($DR::SaveSlot).EquipPresetIndex + 0];
 	%item = %preset.get(%slot);
+	%itemname = "";
+	%description = "";
 	if(isObject(%item))
 	{
-		%s = formatItem(%item,%client,true) NL %s;
+		%itemname = %item.uiname;
+		%description = %item.shopobj.description;
 	}
 
-	return %s;
+	return "<font:impact:30>\c6" @ %itemname NL "<font:palatino linotype:22>\c7" @ %description NL "" NL  %s;
 }
 
 function DRMenu_EquipmentUse(%stack,%slot)
@@ -453,7 +433,7 @@ function DRMenu_EquipmentUse(%stack,%slot)
 	}
 	else
 	{
-		DRMenu_ShopListOpen(%stack,%slot,%shopclass,DRMenuNone,"Empties this slot");
+		DRMenu_ShopListOpen(%stack,%slot,%shopclass,DRMenuNone,"Empties this slot","Buy and equip","Borrow and pay at round start","Equip");
 	}
 }
 
@@ -488,7 +468,7 @@ function DRMenu_ShopUse(%stack,%slot)
 	switch$(%stack.peek(0).get(%slot))
 	{
 	case "DRMenuVehicles":
-		%icon = DRMenuNone;
+		%icon = DRMenuNewJeep;
 		%desc = "Returns to the normal jeep";
 		%borrowblurb = "Pay and switch";
 	case "DRMenuTrails":
@@ -501,7 +481,7 @@ function DRMenu_ShopUse(%stack,%slot)
 	DRMenu_ShopListOpen(%stack,%slot,%shopclass,%icon,%desc,%buyBlurb,%borrowBlurb,%equipBlurb);
 }
 
-function DRMenu_ShopListOpen(%stack,%slot,%class,%defaultOption,%defaultDescription,%defaultfunc,%buyBlurb,%borrowBlurb,%equipBlurb)
+function DRMenu_ShopListOpen(%stack,%slot,%class,%defaultOption,%defaultDescription,%buyBlurb,%borrowBlurb,%equipBlurb)
 {
 	%client = %stack.client;
 	%client.DRMenu_ShopListClass = %class;
@@ -560,7 +540,47 @@ function DRMenu_ShopListSelect(%stack,%slot)
 		{
 			return "\c3" @ %client.DRMenu_ShopListDefaultDesc;
 		}
-		return formatItem(%item,%client,true,true);
+		%shopObj = %item.shopobj;
+		%itemname = %item.uiname;
+		
+		if(DRMenu_Owns(%client,%shopObj))
+		{
+			%namecolor = "\c2";
+			%action = %client.DRMenu_ShopListEquipBlurb;
+		}
+		else
+		{
+			if(%shopobj.cost > %client.score)
+			{
+				%namecolor = "\c0";
+				%action = "Cannot afford";
+				if(%shopObj.buyOnce)
+				{
+					%price = "\c7-\c3" SPC %shopObj.cost;
+				}
+				else
+				{
+					%price = "\c7-\c3" SPC %shopObj.cost SPC "\c0per round";
+				}
+			}
+			else
+			{
+				%namecolor = "\c6";
+				if(%shopObj.buyOnce)
+				{
+					%price = "\c7-\c3" SPC %shopObj.cost;
+					%action = %client.DRMenu_ShopListBuyBlurb;
+				}
+				else
+				{
+					%price = "\c7-\c3" SPC %shopObj.cost SPC "\c0per round";
+					%action = %client.DRMenu_ShopListBorrowBlurb;
+				}
+			}
+		}
+		%description = %shopObj.description;
+
+		return "<font:impact:30>" @ %namecolor @ %itemname SPC %price NL "<font:palatino linotype:22>\c7" @ %description NL "" NL "<font:palatino linotype:24>\c3" @ %action;
 	}
 	return "";
 }

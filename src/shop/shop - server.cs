@@ -663,16 +663,16 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
 		return false;
 
 	if(%player.getState() $= "dead")
-		return false;;
+		return false;
 
 	if(!isObject(%vehicle = %player.getObjectMount()))
-		return false;;
+		return false;
 	
 	if(!(%vehicle.getType() & $TypeMasks::VehicleObjectType))
-		return false;;
+		return false;
 
 	if(!isObject(%brick = %vehicle.spawnBrick))
-		return false;;
+		return false;
 
 	// if(isObject(%mini = %this.minigame) && %mini.DR_time <= 0 && !%this.bypassShop)
 	// 	return;
