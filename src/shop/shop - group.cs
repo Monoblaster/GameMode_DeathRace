@@ -89,8 +89,6 @@ function DRShopSO::findScript(%this, %ShopName)
 	return -1;
 }
 
-$Deathrace::Icons = "add-ons/gamemode_deathrace/icons/";
-
 /// <summary>
 /// Loads the Shop program.
 /// </summary>

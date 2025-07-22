@@ -35,15 +35,9 @@ datablock ItemData(DRMenuSupport)
 datablock ItemData(DRMenuSwitch)
 {
 	uiname = "Switch";
+	iconName = $Deathrace::Icons @ "preseticon";
 	doColorShift = true;
 	colorShiftColor = "1 1 0 1";
-};
-
-datablock ItemData(DRMenuReady)
-{
-	uiname = "Done";
-	doColorShift = true;
-	colorShiftColor = "1 0 1 1";
 };
 
 datablock ItemData(DRMenuSlotOne)
@@ -63,37 +57,31 @@ datablock ItemData(DRMenuSlotThree)
 
 datablock ItemData(DRMenuNext)
 {
-	uiname = ">";
+	doColorShift = true;
+	colorShiftColor = "1 1 0 1";
+	iconName = $Deathrace::Icons @ "nexticon";
+	uiname = "Next Page";
 };
 
 datablock ItemData(DRMenuNone)
 {
+	doColorShift = true;
+	colorShiftColor = "1 0 0 1";
+	iconName = $Deathrace::Icons @ "emptyicon";
 	uiname = "None";
 };
 
 datablock ItemData(DRMenuNewJeep)
 {
-	uiname = "New Jeep";
 	iconName = $Deathrace::Icons @ "newjeep";
-};
-
-datablock ItemData(DRMenuYes)
-{
-	uiname = "Yes";
-};
-
-datablock ItemData(DRMenuCancel)
-{
-	uiname = "Cancel";
-};
-
-datablock ItemData(DRMenuNo)
-{
-	uiname = "No";
+	uiname = "New Jeep";
 };
 
 datablock ItemData(DRMenuConfirm)
 {
+	doColorShift = true;
+	colorShiftColor = "0 1 0 1";
+	iconName = $Deathrace::Icons @ "confirmicon";
 	uiname = "Confirm";
 };
 
@@ -101,6 +89,7 @@ datablock ItemData(DRMenuEquipmentEditor)
 {
 	doColorShift = true;
 	colorShiftColor = "1 1 0 1";
+	iconName = $Deathrace::Icons @ "equipmenticon";
 	uiname = "Loadout";
 };
 
@@ -108,35 +97,32 @@ datablock ItemData(DRMenuShop)
 {
 	doColorShift = true;
 	colorShiftColor = "1 0 0 1";
+	iconName = $Deathrace::Icons @ "shopicon";
 	uiname = "Shop";
 };
 
 datablock ItemData(DRMenuVehicles)
 {
 	doColorShift = true;
-	colorShiftColor = "1 0 0 1";
+	colorShiftColor = "0.7 0.7 0.7 1";
+	iconName = $Deathrace::Icons @ "vehicleicon";
 	uiname = "Vehicles";
 };
 
 datablock ItemData(DRMenuTrails)
 {
 	doColorShift = true;
-	colorShiftColor = "1 0 0 1";
+	colorShiftColor = "1 1 0 1";
+	iconName = $Deathrace::Icons @ "trailsicon";
 	uiname = "Player Trails";
 };
 
 datablock ItemData(DRMenuMinigameSpecials)
 {
 	doColorShift = true;
-	colorShiftColor = "1 0 0 1";
+	colorShiftColor = "1 0 1 1";
+	iconName = $Deathrace::Icons @ "specialicon";
 	uiname = "Minigame Specials";
-};
-
-datablock ItemData(DRMenuSpecials)
-{
-	doColorShift = true;
-	colorShiftColor = "1 0 0 1";
-	uiname = "Specials";
 };
 
 function DRMenu_Owns(%client,%shopobj)

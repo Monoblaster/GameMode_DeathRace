@@ -61,6 +61,7 @@ PlayerMultiSlotNoJetArmor.painSound            = PainCrySound;
 
 $Server::Name = "DeathRace";
 $Pref::Server::MaxPlayers = 48;
+$Deathrace::Icons = "add-ons/gamemode_deathrace/icons/";
 
 HorseArmor.maxForwardSpeed = 30;
 HorseArmor.canRide = 1;
