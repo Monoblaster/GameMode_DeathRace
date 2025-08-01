@@ -492,9 +492,15 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 			%allin = true;
 			for(%i = 0; %i < %count; %i++)
 			{
-				%player = %mini.member[%i].player;
-				if(!isObject(%player) || %player.getMountedObjectCount() > 0 || isObject(%player.getObjectMount()) || %player.InventoryStack.peek(0).blockQuickstart)
+				%client = %mini.member[%i];
+				%player = %client.player;
+				if((!isObject(%player) || %player.getMountedObjectCount() > 0 || isObject(%player.getObjectMount())) && !%client.InventoryStack.peek(0).blockQuickstart)
 				{
+					if(!%player.quickstartready)
+					{
+						%player.quickstartready = true;
+						%client.chatMessage("\c6You are ready!");
+					}
 					continue;
 				}
 
@@ -506,6 +512,19 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 					continue;
 				}
 
+				if(%player.quickstartready)
+				{
+					%player.quickstartready = false;
+					if(%client.InventoryStack.peek(0).blockQuickstart)
+					{
+						%client.chatMessage("\c6Close this menu to start the round.");
+					}
+					else
+					{
+						%client.chatMessage("\c6Get in a jeep to start the round.");
+					}
+				}
+
 				%allin = false; 
 			}
 
@@ -514,17 +533,21 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 				if(%mini.quickstartTime $= "")
 				{
 					%mini.quickstartTime = getSimTime() + 5000;
-					%mini.chatMessageAll("\c6Quickstart in 5 seconds...");
 				}
 				else if(%mini.quickstartTime < getSimTime())
 				{
+					%mini.quickstartTime = "";
 					%mini.dr_time = 3;
 				}
 			}
 			else
 			{
-				%mini.quickstartTime = "";
-				%mini.chatMessageAll("\c6Quickstart cancelled.");
+
+				if(%mini.quickstartTime !$= "")
+				{
+					%mini.quickstartTime = "";
+				}
+				
 			}
 		}
 	}
