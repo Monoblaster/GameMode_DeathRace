@@ -280,6 +280,18 @@ function DRMenu_EquipPreset(%client)
 	%data = %client.dataInstance($DR::SaveSlot);
 	%equippresetindex = %data.EquipPresetIndex + 0;
 	%preset = %client.EquipPreset[%equippresetindex + 0];
+	
+	if(!isObject(%preset))
+	{
+		%loadout = %data.savedLoadout[%equippresetindex];
+		%count = getWordCount(%loadout);
+		%preset = Inventory_Create();
+		%client.EquipPreset[%equippresetindex] = %preset;
+		for(%i = 0; %i < %count; %i++)
+		{
+			%preset.set(%i,getWord(%loadout,%i));
+		}
+	}
 
 	%count = %client.getMaxTools();
 	for(%i = 0; %i < %count; %i++)
