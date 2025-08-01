@@ -1,18 +1,15 @@
 $Shop::Chars = "`~!@#^&*-=+{}\\|;:\'\",<>/?[].";
 
-if(!isObject(DRShopGroup))
+if(isObject(DRShopGroup))
 {
-	new ScriptGroup(DRShopGroup)
-	{
-		class = DRShopSO;
-		filePath = "config/server/Shop/";
-	};
-	DRShopGroup.schedule(1000, Load);
+	DRShopGroup.delete();
 }
-else
+new ScriptGroup(DRShopGroup)
 {
-	DRShopGroup.schedule(1000, Load);
-}
+	class = DRShopSO;
+	filePath = "config/server/Shop/";
+};
+DRShopGroup.schedule(1000, Load);
 
 function GuiTextListCtrl::findTextIndexHack(%gui, %find)
 {
@@ -27,6 +24,12 @@ function GuiTextListCtrl::findTextIndexHack(%gui, %find)
 	}
 
 	return -1;
+}
+
+function DRShopSO::OnRemove(%this)
+{
+	%this.deleteAll();
+	%this.shopCategories.delete();
 }
 
 function DRShopSO::getShopFieldList(%this, %ShopTree)
@@ -170,7 +173,7 @@ function DRShopSO::Load(%this)
 				"cannotModify 1" TAB
 				"buyOnce 1" TAB
 				"cost 60" TAB
-				"description Use '/Trail " @ %name @ "' to set your player trail. Equip again to remove trail or /trail None. Permanent perchase." TAB
+				"description " @ %name @ " trail." TAB
 				"func Shop_TrailUpgrades" TAB
 				"func_call " @ %name);
 		}
@@ -180,7 +183,7 @@ function DRShopSO::Load(%this)
 		"shopClass Minigame Specials" TAB
 		"cannotModify 1" TAB
 		"cost 6" TAB
-		"description The next round will have faster jeeps. 1 round use." TAB
+		"description The next round will have faster jeeps." TAB
 		"func Shop_MiniSpecial" TAB
 		"func_call CrazySpeed");
 
@@ -188,7 +191,7 @@ function DRShopSO::Load(%this)
 		"shopClass Minigame Specials" TAB
 		"cannotModify 1" TAB
 		"cost 5" TAB
-		"description The next round will have bigger jeeps. 1 round use." TAB
+		"description The next round will have bigger jeeps." TAB
 		"func Shop_MiniSpecial" TAB
 		"func_call VehicleScale");
 
@@ -196,11 +199,12 @@ function DRShopSO::Load(%this)
 		"shopClass Minigame Specials" TAB
 		"cannotModify 1" TAB
 		"cost 7" TAB
-		"description The next round will turn everyone into a faster horse. 1 round use." TAB
+		"description The next round will turn everyone into a faster horse." TAB
 		"func Shop_MiniSpecial" TAB
 		"func_call Horse");
 
 	registerDRShopItem("Post-Apoc Fordor", 
+		"image" SPC $Deathrace::Icons @ "apocfourdoor" TAB
 		"shopClass Vehicles" TAB
 		"cannotModify 1" TAB
 		"cost 22" TAB
@@ -209,6 +213,7 @@ function DRShopSO::Load(%this)
 		"func_call Post-Apoc Fordor");
 
 	registerDRShopItem("Post-Apoc Pickup", 
+		"image" SPC $Deathrace::Icons @ "apocpickup" TAB
 		"shopClass Vehicles" TAB
 		"cannotModify 1" TAB
 		"cost 18" TAB
@@ -217,6 +222,7 @@ function DRShopSO::Load(%this)
 		"func_call Post-Apoc Pickup");
 
 	registerDRShopItem("Skateboard", 
+		"image" SPC $Deathrace::Icons @ "skateboard" TAB
 		"shopClass Vehicles" TAB
 		"cannotModify 1" TAB
 		"cost 1" TAB
@@ -225,7 +231,8 @@ function DRShopSO::Load(%this)
 		"func Shop_VehicleUpgrades" TAB
 		"func_call Skateboard");
        
-        registerDRShopItem("Euro Turbo", 
+    registerDRShopItem("Euro Turbo", 
+		"image" SPC $Deathrace::Icons @ "euro" TAB
 		"shopClass Vehicles" TAB
 		"cannotModify 1" TAB
 		"cost 3" TAB
@@ -235,6 +242,7 @@ function DRShopSO::Load(%this)
 		"func_call Euro Turbo");
 
 	registerDRShopItem("Jeep", 
+		"image" SPC $Deathrace::Icons @ "jeep" TAB
 		"shopClass Vehicles" TAB
 		"cannotModify 1" TAB
 		"cost 1" TAB
@@ -243,6 +251,7 @@ function DRShopSO::Load(%this)
 		"func_call Jeep");
 
 	registerDRShopItem("Phantom", 
+		"image" SPC $Deathrace::Icons @ "phantom" TAB
 		"shopClass Vehicles" TAB
 		"cannotModify 1" TAB
 		"cost 2" TAB
@@ -251,6 +260,7 @@ function DRShopSO::Load(%this)
 		"func_call Phantom");
 
 	registerDRShopItem("Oldtimer", 
+		"image" SPC $Deathrace::Icons @ "oldtimer" TAB
 		"shopClass Vehicles" TAB
 		"cannotModify 1" TAB
 		"cost 5" TAB
@@ -259,6 +269,7 @@ function DRShopSO::Load(%this)
 		"func_call Oldtimer");
 
 	registerDRShopItem("Tank", 
+		"image" SPC $Deathrace::Icons @ "tank" TAB
 		"shopClass Vehicles" TAB
 		"cannotModify 1" TAB
 		"cost 35" TAB
@@ -300,8 +311,9 @@ function DRShopSO::Load(%this)
 /// <param name="com">Parameters, each variable must be in a different field.</param>
 function DRShopItem::onAdd(%this)
 {
-	DRShopGroup.add(%this);
-	%categoryList = DRShopGroup.shopCategories;
+	%group = DRShopGroup;
+	%group.add(%this);
+	%categoryList = %group.shopCategories;
 	if(isObject(%categoryList))
 	{
 		%idx = %categoryList.findTextIndexHack(%this.shopClass);
@@ -316,6 +328,39 @@ function DRShopItem::onAdd(%this)
 	}
 
 	%this.parseCommand(%this.command);
+
+	//automatically create items for the ui
+	%item = %this.item;
+	if(!isObject(%item))
+	{
+		%item = findItemByName(%this.uiname,"",true);
+		if(!isObject(%item) && %item.getClassName() $="")
+		{
+			eval("datablock ItemData("@ %this.getName() @"Item){uiname = %this.uiname;iconName = %this.image;};");
+			%item = (%this.getName() @ "Item");
+		}
+	}
+	%item.shopobj = %this;
+	%this.parseCommand("item" SPC %item.getName());
+
+	%list = %group.priceSorted[%this.shopClass];
+	%count = getWordCount(%list);
+	for(%i = 0; %i < %count; %i++)
+	{
+		%shopObj = getWord(%list, %i);
+		if(%shopObj.cost > %this.cost)
+		{
+			break;
+		}
+	}
+	if(%i >= %count)
+	{
+		%shopObj = "";
+	}
+
+	%list = setWord(%list,%i,trim(%this.getName() SPC %shopObj));
+	%group.priceSorted[%this.shopClass] = %list;
+
 	cancel($SendShopDataSch);
 	$SendShopDataSch = schedule(1000, 0, Shop_SendDataToAllClients, 1);
 }

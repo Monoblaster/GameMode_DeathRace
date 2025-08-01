@@ -15,8 +15,8 @@
 
 //$CACHE::CenterPrintMenu::LoadedVersion = 11;
 
-if(isPackage(SupportCenterPrintMenu))
-	deactivatePackage(SupportCenterPrintMenu);
+// if(isPackage(SupportCenterPrintMenu))
+// 	deactivatePackage(SupportCenterPrintMenu);
 
 package SupportCenterPrintMenu
 {
@@ -88,7 +88,7 @@ package SupportCenterPrintMenu
 		}
 	}
 };
-activatePackage(SupportCenterPrintMenu);
+// activatePackage(SupportCenterPrintMenu);
 
 function GameConnection::updateCenterPrintMenu(%client)
 {

@@ -1,5 +1,5 @@
 // Ones you should edit: Replace CustomMinigameSO with your own class
-
+$Deathrace::PlayersPerTeam = 6;
 function CustomMinigameSO::onCreate(%mini)
 {
 	if(!isObject(%mini.games))
@@ -58,7 +58,7 @@ function CustomMinigameSO::onMaxRoundLimit(%mini)
 
 function CustomMinigameSO::onPreRoundStart(%mini)
 {
-	
+	shuffleMusicCache();
 }
 
 function CustomMinigameSO::onPreSpawn(%mini, %client)
@@ -289,6 +289,31 @@ function CustomMinigameSO::Reset(%mini, %client)
 		%cl = %mini.member[%i];
 		%cl.roundKills = 0;
 		%cl.roundPoints = 0;
+	}
+
+	//determine active and inactive teams
+	%teams = %mini.teams;
+	%count = %teams.getCount();
+	for(%i = 0; %i < %count; %i++)
+	{
+		%team = %teams.getObject(%i);
+		if(%team.name $= "Admin Team")
+		{
+			continue;
+		}
+
+		%team.avoidAutoJoin = true;
+		%teamstring = %teamstring SPC %team;
+	}
+	%teamstring = lTrim(%teamstring);
+	%count = getWordCount(%teamstring);
+	%activeTeamCount = mClamp((mCeil(%mini.numMembers / $Deathrace::PlayersPerTeam)),2,%count);
+	for(%i = 0; %i < %activeTeamCount; %i++)
+	{
+		%r = getRandom(0,(%count-%i)-1);
+		%team = getWord(%teamstring,%r);
+		%teamstring = removeWord(%teamstring,%r);
+		%team.avoidAutoJoin = false;
 	}
 
 	%mini.onPreRoundStart();

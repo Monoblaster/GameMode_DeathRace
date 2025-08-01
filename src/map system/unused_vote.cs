@@ -117,7 +117,7 @@ function MapChanger_UpdateAllClientVotes() {
 		%client = %mini.member[%i];
 		
 		%client.CPM_Data = strReplace(%mapListing, "%C%", %client);
-		%client.updateCenterPrintMenu();
+		// %client.updateCenterPrintMenu();
 	}
 }
 
@@ -187,7 +187,7 @@ function MapChanger_EndVote(%mini) {
 		%client = %mini.member[%i];
 		
 		%client.alreadyVoted = "";
-		%client.displayCenterPrintMenu(0, "stop");
+		// %client.displayCenterPrintMenu(0, "stop");
 
 		%client.dataInstance($DR::SaveSlot).DR_NoHud = %client.oldDR_NoHud;
 	}
@@ -372,7 +372,7 @@ function MapChanger_StartNewMapVote(%this) {
 		%client.oldDR_NoHud = %client.dataInstance($DR::SaveSlot).DR_NoHud;
 		%client.dataInstance($DR::SaveSlot).DR_NoHud    = 1;
 		%client.alreadyVoted = "";
-		%client.schedule(1000, displayCenterPrintMenu, 0, strReplace(%mapListing, "%C%", %client));
+		// %client.schedule(1000, displayCenterPrintMenu, 0, strReplace(%mapListing, "%C%", %client));
 	}
 	
 	MapChanger_updateTimeLeft();

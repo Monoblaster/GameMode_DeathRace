@@ -2,6 +2,11 @@ package ToggleTools
 {
 	function serverCmddropTool(%client, %toolID)
 	{
+		if(!%client.player.tool[%toolId].canDrop)
+		{
+			return;
+		}
+
 		%slot = %toolID;
 		if(!isObject(%client.minigame))
 		{

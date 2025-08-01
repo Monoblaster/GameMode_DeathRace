@@ -260,33 +260,44 @@ function MapSys_SetMapNext(%stage, %file)
 			
 			announce("\c6[\c3MP\c6] Vote for your map NOW! Say \c3/v map# \c6to vote! Maps in \c7grey \c6are not allowed to be voted!");
 			deleteVariables("$Temp::MapSys_Map*");
-			for(%i = 1; %i <= $Server::MapSys_MapCount; %i++)
+			%mapCount = $Server::MapSys_MapCount;
+			%selectionCount = 3;
+			for(%i = 1; %i <= %mapCount; %i++)
 			{
-				if(%data $= "")
-					%data = $Server::MapSys_MapName[%i];
-				else 
-					%data = %data TAB $Server::MapSys_MapName[%i];
-
-				%maxPls = $Pref::Server::MapSys::MaxPlayers_[getSafeVariableName($Server::MapSys_MapName[%i])];
-				if($DefaultMinigame.numMembers >= %maxPls && %maxPls !$= "")
+				if($Temp::MapSys_CurrentMap $= $Server::MapSys_Map[%i])
 				{
-					$Temp::MapSys_MapCannotVote[%i] = 1;
-					announce(" \c6#\c7" @ %i @ " \c6- \c7" @ $Server::MapSys_MapName[%i]);
+					continue;
 				}
-				else
-					announce(" \c6#\c3" @ %i @ " \c7- \c3" @ $Server::MapSys_MapName[%i] @ (%maxPls > 0 ? " \c6(Max: \c3" @ %maxPls @ "\c6)" : ""));
+
+				if(%data $= "")
+					%data = %i;
+				else 
+					%data = %data TAB %i;
+			}
+			%datacount = getFieldCount(%data);
+			%removeCount = %datacount  - %selectionCount;
+			for(%i = 0; %i < %removeCount; %i++)
+			{
+				%data = removeField(%data,getRandom(0,(%datacount-%i)-1));
+			}
+			%count = getFieldCount(%data);
+			for(%i = 0; %i < %count; %i++)
+			{
+				%map = $Server::MapSys_MapName[getField(%data,%i)];
+				announce(" \c6#\c3" @ %i + 1 @ " \c7- \c3" @ %map);
 			}
 
-			for(%i = 0; %i < clientGroup.getCount(); %i++)
-			{
-				%cl = clientGroup.getObject(%i);
-				if(%cl.Shop_Client && %cl.dataInstance($DR::SaveSlot).DR_MapGUI)
-					commandToClient(%cl, 'DRShop', "OpenMap");
-				else if(!$Server::MapSys::Temp::IgnoreCPM[%cl.getBLID()])
-					%cl.displayCenterPrintMenu(%data, "onMapSelectCPM");
-			}
+			// for(%i = 0; %i < clientGroup.getCount(); %i++)
+			// {
+			// 	%cl = clientGroup.getObject(%i);
+			// 	// if(%cl.Shop_Client && %cl.dataInstance($DR::SaveSlot).DR_MapGUI)
+			// 	// 	commandToClient(%cl, 'DRShop', "OpenMap");
+			// 	// else if(!$Server::MapSys::Temp::IgnoreCPM[%cl.getBLID()])
+			// 	// 	%cl.displayCenterPrintMenu(%data, "onMapSelectCPM");
+			// }
 
 			$Temp::MapSys_CanVote = 1;
+			$Temp::MapSys_MapSelection = %data;
 			MapSys_SetMapVote();
 		}
 		else
@@ -458,16 +469,19 @@ function MapSys_SetMapVote(%time)
 		%votes = 0;
 		%mapTieCount = 0;
 		announce("\c6[\c3MP\c6] Vote results:");
-		for(%i = 1; %i <= $Server::MapSys_MapCount; %i++)
+		%data = $Temp::MapSys_MapSelection;
+		%count = getFieldCount(%data);
+		for(%i = 1; %i <= %count; %i++)
 		{
 			%cur = $Temp::MapSys_MapVotes[%i];
-			announce("  - \c3" @ $Server::MapSys_MapName[%i] @ " (" @ mFloor(%cur) @ (%cur != 1 ? " votes" : " vote") @ ")");
+			%index = getField(%data,%i - 1);
+			announce("  - \c3" @ $Server::MapSys_MapName[%index] @ " (" @ mFloor(%cur) @ (%cur != 1 ? " votes" : " vote") @ ")");
 			if(%cur > %votes && %cur != 0)
 			{
 				%mapTieCount = 0;
 				%votes = %cur;
-				%mapName = $Server::MapSys_MapName[%i];
-				%map = $Server::MapSys_Map[%i];
+				%mapName = $Server::MapSys_MapName[%index];
+				%map = $Server::MapSys_Map[%index];
 			}
 			else if(%cur == %votes && %votes != 0)
 			{
@@ -480,8 +494,8 @@ function MapSys_SetMapVote(%time)
 				}
 
 				%mapTieCount++;
-				%mapTieName[%mapTieCount] = $Server::MapSys_MapName[%i];
-				%mapTie[%mapTieCount] = $Server::MapSys_Map[%i];
+				%mapTieName[%mapTieCount] = $Server::MapSys_MapName[%index];
+				%mapTie[%mapTieCount] = $Server::MapSys_Map[%index];
 			}
 		}
 
@@ -495,7 +509,7 @@ function MapSys_SetMapVote(%time)
 		else if(%mapName $= "")
 		{
 			announce("\c6[\c3MP\c6] Time is up! No votes were counted! Randomizing map!");
-			%r = getRandom(1, $Server::MapSys_MapCount);
+			%r = getField(%data,getRandom(0, %count-1));
 			%mapName = $Server::MapSys_MapName[%r];
 			%map = $Server::MapSys_Map[%r];
 		}
@@ -508,7 +522,7 @@ function MapSys_SetMapVote(%time)
 			if(%cl.Shop_Client)
 				commandToClient(%cl, 'DRShop', "CloseMap");
 			
-			%cl.displayCenterPrintMenu("stop");
+			// %cl.displayCenterPrintMenu("stop");
 		}
 
 		$DefaultMinigame.setMusic(0, 1);
@@ -576,56 +590,56 @@ function serverCmdSaveEnvMap(%client, %a0, %a1, %a2, %a3, %a4, %a5, %a6, %a7, %a
 	announce("\c6(\c3" @ %client.getPlayerName() @ "\c6) \c6Current environment saved into the map changer for %2. (\c3" @ %path @ "\cr)");
 }
 
-function serverCmdVoteMapByName(%client, %mapName)
-{
-	if(!$Temp::MapSys_CanVote)
-		return;
+// function serverCmdVoteMapByName(%client, %mapName)
+// {
+// 	if(!$Temp::MapSys_CanVote)
+// 		return;
 
-	if($Temp::MapSys_MapVoteID[%client.getBLID()] !$= "")
-	{
-		%client.chatMessage("\c6Sorry, unfortunately you cannot change maps right now.");
-		return;
-	}
+// 	if($Temp::MapSys_MapVoteID[%client.getBLID()] !$= "")
+// 	{
+// 		%client.chatMessage("\c6Sorry, unfortunately you cannot change maps right now.");
+// 		return;
+// 	}
 
-	if($Sim::Time - %client.lastMapVote < 0.2)
-		return;
+// 	if($Sim::Time - %client.lastMapVote < 0.2)
+// 		return;
 
-	%client.lastMapVote = $Sim::Time;
-	for(%i = 1; %i <= $Server::MapSys_MapCount; %i++)
-	{
-		%mapName[%i] = $Server::MapSys_MapName[%i];
+// 	%client.lastMapVote = $Sim::Time;
+// 	for(%i = 1; %i <= $Server::MapSys_MapCount; %i++)
+// 	{
+// 		%mapName[%i] = $Server::MapSys_MapName[%i];
 
-		if(%mapName[%i] $= %mapName)
-		{
-			%mapSel = %i;
-			%mapName = %mapName[%i];
-			break;
-		}
-	}
+// 		if(%mapName[%i] $= %mapName)
+// 		{
+// 			%mapSel = %i;
+// 			%mapName = %mapName[%i];
+// 			break;
+// 		}
+// 	}
 
-	if(%mapSel $= "")
-	{
-		%client.chatMessage("\c6Invalid map.");
-		return;
-	}
+// 	if(%mapSel $= "")
+// 	{
+// 		%client.chatMessage("\c6Invalid map.");
+// 		return;
+// 	}
 
-	if($Temp::MapSys_MapCannotVote[%mapSel] == 1)
-	{
-		%client.chatMessage("\c6Sorry, you cannot vote for that map.");
-		return;
-	}
+// 	if($Temp::MapSys_MapCannotVote[%mapSel] == 1)
+// 	{
+// 		%client.chatMessage("\c6Sorry, you cannot vote for that map.");
+// 		return;
+// 	}
 
-	if($Temp::MapSys_MapVoteID[%client.getBLID()] !$= "")
-	{
-		%client.chatMessage("\c6Sorry, unfortunately you cannot change maps right now.");
-		return;
-	}
+// 	if($Temp::MapSys_MapVoteID[%client.getBLID()] !$= "")
+// 	{
+// 		%client.chatMessage("\c6Sorry, unfortunately you cannot change maps right now.");
+// 		return;
+// 	}
 
-	$Temp::MapSys_MapVoteID[%client.getBLID()] = $Server::MapSys_MapName[%mapSel];
-	$Temp::MapSys_MapVotes[%mapSel]++;
+// 	$Temp::MapSys_MapVoteID[%client.getBLID()] = $Server::MapSys_MapName[%mapSel];
+// 	$Temp::MapSys_MapVotes[%mapSel]++;
 
-	%client.chatMessage("\c6You voted for \c3" @ $Server::MapSys_MapName[%mapSel]);
-}
+// 	%client.chatMessage("\c6You voted for \c3" @ $Server::MapSys_MapName[%mapSel]);
+// }
 
 function GameConnection::onMapSelectCPM(%client, %num)
 {
@@ -645,24 +659,24 @@ function serverCmdV(%client, %mapNum)
 		return;
 	}
 
-	if($Temp::MapSys_MapCannotVote[%mapNum] == 1)
-	{
-		%client.chatMessage("\c6Sorry, you cannot vote for that map.");
-		return;
-	}
+	// if($Temp::MapSys_MapCannotVote[%mapNum] == 1)
+	// {
+	// 	%client.chatMessage("\c6Sorry, you cannot vote for that map.");
+	// 	return;
+	// }
 
 	%mapNum |= 0;
-	if($Server::MapSys_Map[%mapNum] !$= "")
-	{
-		$Temp::MapSys_MapVoteID[%client.getBLID()] = $Server::MapSys_MapName[%mapNum];
-		$Temp::MapSys_MapVotes[%mapNum]++;
-
-		%client.chatMessage("\c6You voted for \c3" @ $Server::MapSys_MapName[%mapNum]);
-	}
-	else
+	%mapCount = getFieldCount($Temp::MapSys_MapSelection);
+	if(%mapNum > %mapCount || %mapNum <= 0)
 	{
 		%client.chatMessage("\c6Invalid map number!");
+		return;
 	}
+	%mapName = $Server::MapSys_MapName[getField($Temp::MapSys_MapSelection,%mapNum - 1)];
+	$Temp::MapSys_MapVoteID[%client.getBLID()] = %mapName;
+	$Temp::MapSys_MapVotes[%mapNum]++;
+
+	%client.chatMessage("\c6You voted for \c3" @ %mapName);
 }
 
 function MapChanger_ResetRTV() {

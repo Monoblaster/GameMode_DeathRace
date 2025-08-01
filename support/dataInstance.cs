@@ -1,4 +1,8 @@
 $DataInstance::FilePath = "Config/Server/DataInstance";
+if(!isObject($DataInstance::Group))
+{
+	$DataInstance::Group = new ScriptGroup();
+}
 
 function DataInstance_ListDelete(%list)
 {
@@ -6,7 +10,7 @@ function DataInstance_ListDelete(%list)
 	for(%i = 0; %i < %count; %i++)
 	{
 		%curr = getWord(%list,%i);
-		if(isObject(%curr))
+		if(isObject(%curr) && %curr.class $= "DataInstance")
 		{
 			%curr.delete();
 		}
@@ -35,16 +39,43 @@ function DataInstance_ListStringSerialize(%list)
 	return %s;
 }
 
-function SimObject::DataInstance(%obj,%a0,%a1,%a2,%a3,%a4,%a5,%a6,%a7,%a8,%a9,%a10,%a11,%a12,%a13)
+function DataInstance::OnAdd(%obj)
+{
+	$DataInstance::Group.add(%obj);
+}
+
+function DataInstance::OnRemove(%obj)
+{
+	$DataInstance::Group.remove(%obj);
+	if(%obj.DataInstance_List !$= "")
+	{
+		DataInstance_ListDelete(%obj.DataInstance_List);
+	}
+}
+
+function DataInstance_Create(%obj,%index)
+{
+	%d = new ScriptObject(){class = "DataInstance";DataInstance_Parent = %obj;};
+	%obj.DataInstance_List = setWord(%obj.DataInstance_List,%index,%d);
+	return %d;
+}
+
+function DataInstance::Reparent(%obj,%newparent)
+{
+	%obj.DataInstance_Parent = %newparent;
+	return "";
+}
+
+// if index is empty returns nothing
+function SimObject::GetDataInstance(%obj,%a0,%a1,%a2,%a3,%a4,%a5,%a6,%a7,%a8,%a9,%a10,%a11,%a12,%a13)
 {
 	%c = 0;
 	while(%a[%c] !$= "")
 	{
 		%d = getWord(%obj.DataInstance_List,%a[%c]);
-		if(%d $= "")
+		if(!isObject(%d))
 		{
-			%d = new ScriptObject(){class = "DataInstance";DataInstance_Parent = %obj;};
-			%obj.DataInstance_List = setWord(%obj.DataInstance_List,%a[%c],%d);
+			return "";
 		}
 		%obj = %d;
 		%c++;
@@ -52,8 +83,50 @@ function SimObject::DataInstance(%obj,%a0,%a1,%a2,%a3,%a4,%a5,%a6,%a7,%a8,%a9,%a
 	return %d;
 }
 
+function SimObject::DataInstance(%obj,%a0,%a1,%a2,%a3,%a4,%a5,%a6,%a7,%a8,%a9,%a10,%a11,%a12,%a13)
+{
+	%c = 0;
+	while(%a[%c] !$= "")
+	{
+		%d = getWord(%obj.DataInstance_List,%a[%c]);
+		if(!isObject(%d))
+		{
+			%d = DataInstance_Create(%obj,%a[%c]);
+		}
+		%obj = %d;
+		%c++;
+	}
+	return %d;
+}
+
+function SimObject::DataInstance_MoveTo(%obj,%from,%target,%to)
+{
+	%curr = getWord(%target.DataInstance_List,%to);
+	if(isObject(%curr))
+	{
+		%curr.delete();
+	}
+	%data = getWord(%obj.DataInstance_List,%from);
+	%data.DataInstance_Parent = %target;
+	%target.DataInstance_List = setWord(%target.DataInstance_List,%to,%data);
+	%obj.DataInstance_List = setWord(%obj.DataInstance_List,%from,"");
+	return "";
+}
+
 function SimObject::DataInstance_Set(%obj,%slot,%s)
 {
+	%parent = %s.DataInstance_Parent;
+	if(%parent !$= %obj && %parent !$= "")
+	{
+		warn("Invalid parent move. Try using Reparent before.");
+		backtrace();
+		return;
+	}
+	%curr = getWord(%obj.DataInstance_List,%slot);
+	if(isObject(%curr))
+	{
+		%curr.delete();
+	}
 	%s = getWord(%s,0);
 	%obj.DataInstance_List = setWord(%obj.DataInstance_List,%slot,%s);
 	return "";
@@ -61,6 +134,13 @@ function SimObject::DataInstance_Set(%obj,%slot,%s)
 
 function SimObject::DataInstance_Add(%obj,%s,%slot)
 {
+	%parent = %s.DataInstance_Parent;
+	if(%parent !$= %obj && %parent !$= "")
+	{
+		warn("Invalid parent move. Try using Reparent before.");
+		backtrace();
+		return;
+	}
 	if(%slot $= "")
 	{
 		%slot = getWordCount(%obj.DataInstance_List);
@@ -82,6 +162,23 @@ function SimObject::DataInstance_ListSet(%obj,%s)
 	return "";
 }
 
+function SimObject::DataInstance_HasSave(%obj)
+{
+	%id = %obj.DataIdentifier();
+	return isFile($DataInstance::FilePath @ "/" @ %id @ ".cs");
+}
+
+function SimObject::DataInstance_DeleteSave(%obj)
+{
+	%id = %obj.DataIdentifier();
+	%path = $DataInstance::FilePath @ "/" @ %id @ ".cs";
+	if(!isFile(%path))
+	{
+		return;
+	}
+	fileDelete(%path);
+}
+
 function SimObject::DataInstance_ListSave(%obj)
 {
 	%id = %obj.DataIdentifier();
@@ -92,7 +189,6 @@ function SimObject::DataInstance_ListSave(%obj)
 	}
 	%fo = new FileObject();
 	%s = DataInstance_ListStringSerialize(%obj.DataInstance_List);
-	%fo.close();
 	if(%fo.OpenForWrite($DataInstance::FilePath @ "/" @ %id @ ".cs"))
 	{
 		%fo.writeLine(%s);
@@ -116,46 +212,43 @@ function SimObject::DataInstance_ListLoad(%obj)
 
 function DataInstance_ListLoad(%path,%parent)
 {
+	DataInstance_ListDelete(%parent.DataInstance_List);
+	%parent.DataInstance_List = "";
+
 	%fo = new FileObject();
 	if(%fo.OpenForRead(%path))
 	{
 		%c = 0;
 		while(!%fo.isEOF())
 		{
-			%o = eval(%fo.readLine());
-			%o.DataInstance_parent = %parent;
-			%data[%c] = %o;
-			%c++;
+			%line = %fo.readLine();
+			if(%line !$= "")
+			{
+				%o = eval(%line);
+				%o.DataInstance_Parent = %parent;
+				%data[%c] = %o;
+				%c++;
+			}
+			%list = %list SPC %o;
 		}
 	}
 	%fo.close();
 	%fo.delete();
+	%parent.DataInstance_List = removeWord(%list,0);
 
-	DataInstance_ListDelete(%parent.DataInstance_List);
-	if(%c == 0)
+	if(%parent.DataInstance_List $= "")
 	{
-		%parent.DataInstance_List = "";
 		return "";
 	}
 
-	//unwrapped first loop to ensure propper formatting without trimming
-	%currData = %data[0];
-	%s = %currData;
-	if(isObject(%currData))
-	{
-		%currData.DataInstance_ListLoad();
-	}
-	
-	for(%i = 1; %i < %c; %i++)
+	for(%i = 0; %i < %c; %i++)
 	{
 		%currData = %data[%i];
-		%s = %s SPC %currData;
 		if(isObject(%currData))
 		{
 			%currData.DataInstance_ListLoad();
 		}
 	}
-	%parent.DataInstance_List = %s;
 }
 
 function SimObject::DataIdentifier(%obj,%append)
@@ -182,10 +275,9 @@ function MinigameSO::DataIdentifier(%obj,%append)
 	return %obj.class @ %obj.getName() @ %append;
 }
 
-
 function fxDtsBrick::DataIdentifier(%obj,%append)
 {
-	return %obj.getClassName() @ %obj.getTransform() @ %obj.getDatablock() @ %append;
+	return %obj.getClassName() @ %obj.getTransform() @ %obj.getDatablock() @ %obj.getGroup().bl_id @ %append;
 }
 
 function DataInstance::DataIdentifier(%obj,%append)
@@ -205,7 +297,13 @@ function DataInstance::DataIdentifier(%obj,%append)
 
 function DataInstance::StringSerialize(%d)
 {
-	%s = "new" SPC %d.getClassName() @ "(){class = \"DataInstance\";";
+	%classstring  = "class = \""@%d.class@"\";";
+	if(%d.superclass !$= "")
+	{
+		%classstring = %classstring SPC "superclass = \""@%d.superclass@"\";";
+	}
+	
+	%s = "return new" SPC %d.getClassName() @ "(){"@%classstring;
 	%c = 0;
 	while((%field = %d.getTaggedField(%c)) !$= "")
 	{
@@ -223,29 +321,33 @@ function DataInstance::StringSerialize(%d)
 }
 
 $DataInstance::Item = 0;
-function DataInstance_GetFromThrower(%item)
+function DataInstance_GetFromThrower(%item)  //item support
 {
-    %p = findClientByBl_Id(%item.bl_id).player;
-    if(isObject(%p))
+    %player = findClientByBl_Id(%item.bl_id).player;
+    if(!isObject(%player))
     {
-		%datablock = %item.getDatablock().getId();
-		%list = %p.dataInstance($DataInstance::Item).dataInstance_List;
-        %count = getWordCount(%list);
-        for(%i = 0; %i < %count; %i++)
-        {
-            if(%p.tool[%i] == 0 && isObject(%d = getWord(%list,%i)))
-            {
-                %item.dataInstance_set(0,%d);
-				%p.dataInstance($DataInstance::Item).DataInstance_Set(%i);
-                return "";
-            }
-        }
+		return "";
     }
+
+	%itemData = %player.GetDataInstance($DataInstance::Item);
+	%itemDataList = %itemData.DataInstance_List;
+	if(%itemDataList $= "")
+	{
+		return "";
+	}
+	%count = getWordCount(%itemDataList);
+	for(%i = 0; %i < %count; %i++)
+	{
+		if(!isObject(%player.tool[%i]) && getWord(%itemDataList,%i) !$= "")
+		{
+			%itemData.DataInstance_MoveTo(%i,%item,0);
+		}
+	}
 }
 
-package DataInstance_SimObject_OnRemove
+package SimObject_OnRemove
 {
-	function SimObject::OnRemove()
+	function SimObject::OnRemove(%data,%obj)
 	{
 		return "";
 	}
@@ -253,18 +355,48 @@ package DataInstance_SimObject_OnRemove
 
 if(!isFunction("SimObject","OnRemove"))
 {
-	activatePackage("DataInstance_SimObject_OnRemove");
+	activatePackage("SimObject_OnRemove");
 }
 
 package DataInstance
 {
-	function SimObject::OnRemove(%data,%obj)
+	function Armor::OnRemove(%data,%obj) //cleanup
 	{
-		DataInstance_ListDelete(%obj.dataInstance($DataInstance::Item).DataInstance_List);
+		if(%obj.DataInstance_List !$= "")
+		{
+			DataInstance_ListDelete(%obj.DataInstance_List);
+		}
 		parent::OnRemove(%data,%obj);
 	}
 
-	function ItemData::onPickup (%this, %obj, %user, %amount)
+	function fxDtsBrick::OnRemove(%data,%obj) //cleanup
+	{
+		if(%obj.DataInstance_List !$= "")
+		{
+			DataInstance_ListDelete(%obj.DataInstance_List);
+		}
+		parent::OnRemove(%data,%obj);
+	}
+
+	function Vehicle::OnRemove(%data,%obj) //cleanup
+	{
+		if(%obj.DataInstance_List !$= "")
+		{
+			DataInstance_ListDelete(%obj.DataInstance_List);
+		}
+		parent::OnRemove(%data,%obj);
+	}
+
+	function SimObject::OnRemove(%data,%obj) //cleanup
+	{
+		if(%obj.DataInstance_List !$= "")
+		{
+			DataInstance_ListDelete(%obj.DataInstance_List);
+		}
+		parent::OnRemove(%data,%obj);
+	}
+
+	function ItemData::onPickup (%this, %obj, %user, %amount) //item support
     {
         //sigh looks like i have to play "find the difference"
         %maxTools = %user.getDatablock().maxTools;
@@ -272,7 +404,12 @@ package DataInstance
         {
             %before[%i] = %user.tool[%i];
         }
-		%data = %obj.dataInstance(0);
+
+		%itemData = %obj.GetDataInstance(0);
+		if(%itemData $= "")
+		{
+			return parent::onPickup(%this, %obj, %user, %amount);
+		}
 		%obj.DataInstance_ListSet("");
         %r = parent::onPickup(%this, %obj, %user, %amount);
 
@@ -280,15 +417,16 @@ package DataInstance
 		{
 			if(%before[%i] != %user.tool[%i])
 			{
-				%user.dataInstance($DataInstance::Item).DataInstance_set(%i,%data);
-				break;
+				%itemData.Reparent(%user.dataInstance($DataInstance::Item));
+				%itemData.DataInstance_Parent.DataInstance_Set(%i,%itemData);
+				return %r;
 			}
 		}
         
         return %r;
     }
 
-    function ItemData::OnAdd(%db, %obj)
+    function ItemData::OnAdd(%db, %obj) //item support
     {
     	schedule(0,%obj,"DataInstance_GetFromThrower",%obj);
         return Parent::OnAdd(%db, %obj);

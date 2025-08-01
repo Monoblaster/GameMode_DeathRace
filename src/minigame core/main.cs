@@ -838,6 +838,19 @@ function getWordIndexInString(%string, %needle)
 	return -1;
 }
 
+function shuffleMusicCache()
+{
+	%cache = MusicDataCache.getID();
+	%count = %cache.itemCount;
+	for(%i = 0; %i < %count; %i++)
+	{
+		%temp = %cache.item[%i];
+		%r = getRandom(0,%count-1);
+		%cache.item[%i] = %cache.item[%r];
+		%cache.item[%r] = %temp;
+	}
+}
+
 function findMusicByName(%name, %val)
 {
 	if(isObject(%name)) return %name.getName();

@@ -1,5 +1,6 @@
 // DeathRace file
 $DR::SaveSlot = 1;
+$Deathrace::Icons = "add-ons/gamemode_deathrace/icons/";
 registerInputEvent("fxDTSBrick", "onBotTouch", "Self fxDTSBrick" TAB "Bot Bot" TAB "Player Player" TAB "Client GameConnection" TAB "MiniGame MiniGame");
 registerOutputEvent("Player", "addNewItem","string 50 50");
 
@@ -63,6 +64,10 @@ $Server::Name = "DeathRace";
 $Pref::Server::MaxPlayers = 48;
 
 HorseArmor.maxForwardSpeed = 30;
+HorseArmor.canRide = 1;
+HorseArmor.maxTools = 8;
+HorseArmor.maxItems = 10;
+HorseArmor.runSurfaceAngle = 90;
 gc_PumaVehicle.maxWheelSpeed = 30;
 
 function createGameModeMusicDataBlocks ()

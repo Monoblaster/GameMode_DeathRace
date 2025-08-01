@@ -27,6 +27,8 @@ package Shop_Server
 				schedule(1000, 0, commandToClient, %this, 'MessageBoxOK', "Want the GUI?", "Hello! This is a one time thing. If you are interested in the GUI:\n<a:" @ $Shop::Link @ ">Click here!");
 			}
 
+			%this.InventoryStack.clear();
+
 			cancel(%this.shopSch);
 			%this.shopSch = %this.schedule(2000, Shop_Spawn);
 		}
@@ -147,6 +149,17 @@ package PlayerTrailsMainPackage
 		if(isObject(%player))
 		{
 			%player.mountImage(("Trail_" @ strReplace(%client.currentTrail, " ", "_") @ "_Mounted_Image"), 3);
+		}
+	}
+
+	function Player::emote(%player, %data, %skipSpam)
+	{
+		%mounted = %player.getMountedImage(3);
+		%isTrail = getSubStr(%mounted.getName(),0,6) $= "Trail_";
+		parent::emote(%player, %data, %skipSpam);
+		if(%isTrail)
+		{
+			%player.schedule(500,"MountImage",%mounted,3);
 		}
 	}
 };
@@ -377,18 +390,18 @@ function serverCmdDRShop(%this, %option, %cmd1, %cmd2, %cmd3, %cmd4, %cmd5, %cmd
 
 			%obj = findItemByName(%item);
 			if(!isObject(%obj)) return;
-			%groupObj = getDRShopGroup().findScript(%obj.uiName);
-			if(isObject(%groupObj))
+			%shopObj = getDRShopGroup().findScript(%obj.uiName);
+			if(isObject(%shopObj))
 			{
-				if(%groupObj.cannotModify)
+				if(%shopObj.cannotModify)
 					commandToClient(%this, 'MessageBoxOK', "Oops!", "This object cannot be modified.<br>" @ %item);
 				else
 				{
-					messageAll('MsgAdminForce',"\c0" @ %this.getPlayerName() @ " \c6has deleted an item: \c3" @ %groupObj.uiName);
-					if(isFile(%file = getDRShopGroup().filePath @ stripChars(%groupObj.uiName, $Shop::Chars) @ ".cs"))
+					messageAll('MsgAdminForce',"\c0" @ %this.getPlayerName() @ " \c6has deleted an item: \c3" @ %shopObj.uiName);
+					if(isFile(%file = getDRShopGroup().filePath @ stripChars(%shopObj.uiName, $Shop::Chars) @ ".cs"))
 						fileDelete(%file);
 
-					%groupObj.delete();
+					%shopObj.delete();
 					Shop_SendDataToAllClients();
 				}
 			}
@@ -436,46 +449,46 @@ function serverCmdDRShop(%this, %option, %cmd1, %cmd2, %cmd3, %cmd4, %cmd5, %cmd
 
 			%obj = findItemByName(%item);
 			if(!isObject(%obj)) return;
-			%groupObj = getDRShopGroup().findScript(%obj.uiName);
-			if(isObject(%groupObj))
+			%shopObj = getDRShopGroup().findScript(%obj.uiName);
+			if(isObject(%shopObj))
 			{
-				if(%groupObj.cannotModify)
+				if(%shopObj.cannotModify)
 					commandToClient(%this, 'MessageBoxOK', "Oops!", "This object cannot be modified.<br>" @ %item);
 				else
 				{
-					if(%value != %groupObj.cost)
+					if(%value != %shopObj.cost)
 					{
-						messageAll('MsgAdminForce',"\c4" @ %this.getPlayerName() @ " \c6has updated an item:\c3 " @ %groupObj.uiName);
+						messageAll('MsgAdminForce',"\c4" @ %this.getPlayerName() @ " \c6has updated an item:\c3 " @ %shopObj.uiName);
 						%msg = 1;
-						%groupObj.cost = %value;
+						%shopObj.cost = %value;
 						messageAll('',"   \c6Now costs \c3" @ %value @ " points");
 						%counte++;
 					}
 
-					if(%description !$= %groupObj.description && trim(%description) !$= "")
+					if(%description !$= %shopObj.description && trim(%description) !$= "")
 					{
 						if(!%msg)
 						{
 							%msg = 1;
-							messageAll('MsgAdminForce',"\c4" @ %this.getPlayerName() @ " \c6has updated an item:\c3 " @ %groupObj.uiName);
+							messageAll('MsgAdminForce',"\c4" @ %this.getPlayerName() @ " \c6has updated an item:\c3 " @ %shopObj.uiName);
 						}
 
-						%groupObj.description = %description;
+						%shopObj.description = %description;
 						messageAll('',"   \c6Description has been changed.");
 						messageAll('',"       - \c6" @ %description);
 						%counte++;
 					}
 
-					if(%shopClass !$= %groupObj.shopClass && trim(%shopClass) !$= "")
+					if(%shopClass !$= %shopObj.shopClass && trim(%shopClass) !$= "")
 					{
 						if(!%msg)
 						{
 							%msg = 1;
-							messageAll('MsgAdminForce',"\c4" @ %this.getPlayerName() @ " \c6has updated an item:\c3 " @ %groupObj.uiName);
+							messageAll('MsgAdminForce',"\c4" @ %this.getPlayerName() @ " \c6has updated an item:\c3 " @ %shopObj.uiName);
 						}
 
-						%oldShopClass = %groupObj.shopClass;
-						%groupObj.shopClass = %shopClass;
+						%oldShopClass = %shopObj.shopClass;
+						%shopObj.shopClass = %shopClass;
 						%categoryList = DRShopGroup.shopCategories;
 						if(isObject(%categoryList))
 						{
@@ -502,49 +515,49 @@ function serverCmdDRShop(%this, %option, %cmd1, %cmd2, %cmd3, %cmd4, %cmd5, %cmd
 						%counte++;
 					}
 
-					if(%canSave != %groupObj.canSave && trim(%canSave) !$= "")
+					if(%canSave != %shopObj.canSave && trim(%canSave) !$= "")
 					{
 						if(!%msg)
 						{
 							%msg = 1;
-							messageAll('MsgAdminForce',"\c4" @ %this.getPlayerName() @ " \c6has updated an item:\c3 " @ %groupObj.uiName);
+							messageAll('MsgAdminForce',"\c4" @ %this.getPlayerName() @ " \c6has updated an item:\c3 " @ %shopObj.uiName);
 						}
 
-						%groupObj.canSave = %canSave;
+						%shopObj.canSave = %canSave;
 						messageAll('',"   \c6Saving this item is now " @ (%canSave ? "\c2true\c6." : "\c0false\c6."));
 						%counte++;
 					}
 
-					if(%buyOnce != %groupObj.buyOnce && trim(%buyOnce) !$= "")
+					if(%buyOnce != %shopObj.buyOnce && trim(%buyOnce) !$= "")
 					{
 						if(!%msg)
 						{
 							%msg = 1;
-							messageAll('MsgAdminForce',"\c4" @ %this.getPlayerName() @ " \c6has updated an item:\c3 " @ %groupObj.uiName);
+							messageAll('MsgAdminForce',"\c4" @ %this.getPlayerName() @ " \c6has updated an item:\c3 " @ %shopObj.uiName);
 						}
 
-						%groupObj.buyOnce = %buyOnce;
+						%shopObj.buyOnce = %buyOnce;
 						messageAll('',"   \c6Buying this item once is now " @ (%buyOnce ? "\c2true\c6." : "\c0false\c6. You have to always keep buying this."));
 						%counte++;
 					}
 
-					if(%adminLevel != %groupObj.adminLevel && trim(%adminLevel) !$= "")
+					if(%adminLevel != %shopObj.adminLevel && trim(%adminLevel) !$= "")
 					{
 						if(!%msg)
 						{
 							%msg = 1;
-							messageAll('MsgAdminForce',"\c4" @ %this.getPlayerName() @ " \c6has updated an item:\c3 " @ %groupObj.uiName);
+							messageAll('MsgAdminForce',"\c4" @ %this.getPlayerName() @ " \c6has updated an item:\c3 " @ %shopObj.uiName);
 						}
 
-						%groupObj.adminLevel = %adminLevel;
+						%shopObj.adminLevel = %adminLevel;
 						messageAll('',"   \c6Permission to use this weapon: \c3" @ %adminLevelMsg);
 						%counte++;
 					}
 
 					if(%counte > 0)
 					{
-						%groupObj.save(%groupObj.getGroup().filePath @ stripChars(%groupObj.uiName, $Shop::Chars) @ ".cs");
-						Shop_SendSingleDataToAllClients(%groupObj);
+						%shopObj.save(%shopObj.getGroup().filePath @ stripChars(%shopObj.uiName, $Shop::Chars) @ ".cs");
+						Shop_SendSingleDataToAllClients(%shopObj);
 					}
 				}
 			}
@@ -605,18 +618,18 @@ function serverCmdShop_AcceptItem(%this)
 function GameConnection::Shop_MiniSpecial(%this, %command)
 {
 	if(!isObject(%mini = %this.minigame))
-		return;
+		return false;
 
 	if(%mini.DR_SpecialBought != 0)
 	{
 		%this.chatMessage("\c6Sorry! Minigame special is already bought for next round.");
-		return;
+		return false;
 	}
 
 	if($Sim::Time - %mini.lastSpecialBought < (6 * 60))
 	{
 		%this.chatMessage("\c6Sorry! Minigame special cannot be bought right now (cool down). Please try again later.");
-		return;	
+		return false;	
 	}
 
 	switch$(%command)
@@ -625,24 +638,18 @@ function GameConnection::Shop_MiniSpecial(%this, %command)
 			%this.chatMessage("\c6You have bought crazy speed for next round!");
 			%mini.messageAll('', '\c3%1 \c6has bought a special for next round: \c4Crazy speed', %this.getPlayerName());
 			%mini.DR_SpecialBought = 1;
-			%this.incScore(-mAbs(%this.TempDR_Shop));
-			%this.TempDR_Shop = 0;
 			%mini.lastSpecialBought = $Sim::Time;
 
 		case "VehicleScale":
 			%this.chatMessage("\c6You have bought bigger vehicles for next round!");
 			%mini.messageAll('', '\c3%1 \c6has bought a special for next round: \c4Bigger vehicles', %this.getPlayerName());
 			%mini.DR_SpecialBought = 3;
-			%this.incScore(-mAbs(%this.TempDR_Shop));
-			%this.TempDR_Shop = 0;
 			%mini.lastSpecialBought = $Sim::Time;
 
 		case "Horse":
 			%this.chatMessage("\c6You have bought horses for next round!");
 			%mini.messageAll('', '\c3%1 \c6has bought a special for next round: \c4Horses', %this.getPlayerName());
 			%mini.DR_SpecialBought = 11;
-			%this.incScore(-mAbs(%this.TempDR_Shop));
-			%this.TempDR_Shop = 0;
 			%mini.lastSpecialBought = $Sim::Time;
 
 		default:
@@ -653,22 +660,22 @@ function GameConnection::Shop_MiniSpecial(%this, %command)
 function GameConnection::Shop_VehicleUpgrades(%this, %command)
 {
 	if(!isObject(%player = %this.player))
-		return;
+		return false;
 
 	if(%player.getState() $= "dead")
-		return;
+		return false;
 
 	if(!isObject(%vehicle = %player.getObjectMount()))
-		return;
+		return false;
 	
 	if(!(%vehicle.getType() & $TypeMasks::VehicleObjectType))
-		return;
+		return false;
 
 	if(!isObject(%brick = %vehicle.spawnBrick))
-		return;
+		return false;
 
-	if(isObject(%mini = %this.minigame) && %mini.DR_time <= 0 && !%this.bypassShop)
-		return;
+	// if(isObject(%mini = %this.minigame) && %mini.DR_time <= 0 && !%this.bypassShop)
+	// 	return;
 
 	switch$(%command)
 	{
@@ -751,6 +758,26 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
  			}
 
  			if(isObject(%mini = %this.minigame))
+ 				%brick.schedule(50, setVehiclePowered, %mini.DR_time <= 0, %this);
+
+		case "NewJeep":
+ 			if($Pref::Server::DeathRace_AnnounceVehiclePurchase)
+ 				announce(%this.getPlayerName() @ " has bought a vehicle: \c3Jeep");
+			%this.chatMessage("\c6Vehicle set to \c3New Jeep\c6.");
+ 			%brick.setVehicle(nameToID(findVehicleByName("New Jeep")));
+ 			if(isObject(%newVehicle = %brick.vehicle))
+ 			{
+ 				%newVehicle.mountObject(%player, 0);
+ 				if(isObject(%mini))
+ 				{
+	 				if(%mini.DR_RandomVehicleScale)
+	 					%newVehicle.schedule(100, setScale, getRandomF(0.2, 1.8) SPC getRandomF(0.2, 1.8) SPC getRandomF(1, 1.75));
+	 				else
+						%newVehicle.schedule(100, setScale, vectorScale("1 1 1", %mini.vehicleScale));
+				}
+ 			}
+                        
+                        if(isObject(%mini = %this.minigame))
  				%brick.schedule(50, setVehiclePowered, %mini.DR_time <= 0, %this);
 
  		case "Jeep":
@@ -843,6 +870,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
 		default:
 			%error = 1;
 			%this.chatMessage("\c6Invalid option to choose for player upgrades.");
+			return false;
 	}
 
 	if(!%error)
@@ -854,6 +882,7 @@ function GameConnection::Shop_VehicleUpgrades(%this, %command)
 	}
 
 	%this.TempDR_Shop = 0;
+	return true;
 }
 
 function GameConnection::Shop_Bots(%this, %command)
@@ -913,25 +942,13 @@ function GameConnection::Shop_TrailUpgrades(%client, %command)
 
 	if(isTrail(%command) || %command $= "None")
 	{
-		if(%client.dataInstance($DR::SaveSlot).boughtItem[getSafeVariableName("Trail - " @ %command)])
-		{
-			//%client.chatMessage("\c6Trail already purchased: \c3" @ %command @ "\c6. Say /Trail for more information!");
-			serverCmdTrail(%client, %command);
-			%client.TempDR_Shop = 0;
-			return;
-		}
-
-		%client.incScore(-mAbs(%client.TempDR_Shop));
 		%client.dataInstance($DR::SaveSlot).boughtItem[getSafeVariableName("Trail - " @ %command)] = 1;
-		commandToClient(%client, 'DRShop', "SET_BOUGHT", "Trail - " @ %command, 1);
-		%client.chatMessage("\c6Trail purchased: \c3" @ %command @ "\c6. Say /Trail for more information!");
+		%client.chatMessage("\c6Trail purchased: \c3" @ %command @ "\c6.!");
 	}
 	else
 	{
 		%client.chatMessage("\c6Invalid trail to buy!");
 	}	
-
-	%client.TempDR_Shop = 0;
 }
 
 function GameConnection::Shop_PlayerUpgrades(%this, %command)
@@ -1075,152 +1092,112 @@ function Player::Shop_Save(%this,%index)
 		%client.chatMessage(" \c6- You have 1 or more items that were not saved and are removed.");
 }
 
-function GameConnection::RequestItem(%this,%item,%time)
-{
-	if(%this.minigame.noitems)
-		return;
+// function GameConnection::RequestItem(%this,%item,%time)
+// {
+// 	if(%this.minigame.noitems)
+// 		return;
 	
-	if(isObject(%item))
-		%item = %item.uiName;
+// 	if(isObject(%item))
+// 		%item = %item.uiName;
 	
-	%groupObj = getDRShopGroup().findScript(%item);
-	if(isObject(%groupObj))
-	{
-		%groupObj = getDRShopGroup().findScript(%item);
-		if(!isObject(%groupObj))
-		{
-			%this.chatMessage("Invalid shop item to request.");
-			return 0;
-		}
+// 	%shopObj = getDRShopGroup().findScript(%item);
+// 	if(isObject(%shopObj))
+// 	{
+// 		%shopObj = getDRShopGroup().findScript(%item);
+// 		if(!isObject(%shopObj))
+// 		{
+// 			%this.chatMessage("Invalid shop item to request.");
+// 			return 0;
+// 		}
 
-		//Player function stuff
-		if(isFunction(%this.getClassName(), %groupObj.func))
-		{
-			%adminLevel = 0 + %this.isSuperAdmin + %this.isAdmin;
-			if(%adminLevel < %groupObj.adminLevel)
-			{
-				if(%this.Shop_Client) commandToClient(%this,'DRShop_MessageBoxOK',"Shop - ERROR","You cannot purchase this item at this time!");
-				else %this.chatMessage("<font:impact:20>ERROR: You cannot purchase this item at this time.",%time);
-				return -1;
-			}
+// 		//Player function stuff
+// 		if(isFunction(%this.getClassName(), %shopObj.func))
+// 		{
+// 			%adminLevel = 0 + %this.isSuperAdmin + %this.isAdmin;
+// 			if(%adminLevel < %shopObj.adminLevel)
+// 			{
+// 				if(%this.Shop_Client) commandToClient(%this,'DRShop_MessageBoxOK',"Shop - ERROR","You cannot purchase this item at this time!");
+// 				else %this.chatMessage("<font:impact:20>ERROR: You cannot purchase this item at this time.",%time);
+// 				return -1;
+// 			}
 
-			if(%this.getScore() < %groupObj.cost && !%this.bypassShop && %groupObj.cost > 0 && !%this.dataInstance($DR::SaveSlot).boughtItem[getSafeVariableName(%groupObj.uiName)])
-			{
-				if(%this.Shop_Client) commandToClient(%this,'DRShop_MessageBoxOK',"Shop - ERROR","Not enough points!");
-				else %this.chatMessage("<font:impact:20>ERROR: Not enough points!");
-				return;
-			}
+// 			if(%this.getScore() < %shopObj.cost && !%this.bypassShop && %shopObj.cost > 0 && !%this.dataInstance($DR::SaveSlot).boughtItem[getSafeVariableName(%shopObj.uiName)])
+// 			{
+// 				if(%this.Shop_Client) commandToClient(%this,'DRShop_MessageBoxOK',"Shop - ERROR","Not enough points!");
+// 				else %this.chatMessage("<font:impact:20>ERROR: Not enough points!");
+// 				return;
+// 			}
 
-			if(!%this.bypassShop)
-				%this.TempDR_Shop = %groupObj.cost;
+// 			if(!%this.bypassShop)
+// 				%this.TempDR_Shop = %shopObj.cost;
 
-			%this.call(%groupObj.func, %groupObj.func_call);
-			return 1;
-		}
-	}
-	else
-	{
-		%this.chatMessage("\c6Contact a super admin, something is wrong with the shop system. (Invalid object \"" @ %item @ "\")");
-		return 0;
-	}
+// 			%this.call(%shopObj.func, %shopObj.func_call);
+// 			return 1;
+// 		}
+// 	}
+// 	else
+// 	{
+// 		%this.chatMessage("\c6Contact a super admin, something is wrong with the shop system. (Invalid object \"" @ %item @ "\")");
+// 		return 0;
+// 	}
 
-	if(%time < 1) %time = 3;
-	%this.itemRequest = 0;
-	%this.itemRequest = %groupObj.uiName;
-	%this.timeRequest = %time;
+// 	if(%time < 1) %time = 3;
+// 	%this.itemRequest = 0;
+// 	%this.itemRequest = %shopObj.uiName;
+// 	%this.timeRequest = %time;
 
-	%strName = stripChars(%groupObj.uiName, $Shop::Chars);
-	%strName = strReplace(%strName, " ", "_");
+// 	%strName = stripChars(%shopObj.uiName, $Shop::Chars);
+// 	%strName = strReplace(%strName, " ", "_");
 
-	if(%this.dataInstance($DR::SaveSlot).boughtItem[%strName] || %groupObj.cost <= 0)
-	{
-		%this.BuyItem(%groupObj.uiName, %time);
-		return;
-	}
+// 	if(%this.dataInstance($DR::SaveSlot).boughtItem[%strName] || %shopObj.cost <= 0)
+// 	{
+// 		%this.BuyItem(%shopObj.uiName, %time);
+// 		return;
+// 	}
 
-	if(isObject(%item = findItemByName(%groupObj.uiName)) && %this.dataInstance($DR::SaveSlot).boughtItem[%item.getName()])
-	{
-		%this.BuyOldItem(%item.getName());
-		return;
-	}
+// 	if(isObject(%item = findItemByName(%shopObj.uiName)) && %this.dataInstance($DR::SaveSlot).boughtItem[%item.getName()])
+// 	{
+// 		%this.BuyOldItem(%item.getName());
+// 		return;
+// 	}
 
-	if(!%groupObj.canSave)
-		%msg = "You cannot save this item.";
+// 	if(!%shopObj.canSave)
+// 		%msg = "You cannot save this item.";
 
-	if(!%groupObj.buyOnce)
-	{
-		if(%msg $= "")
-			%msg = "You have to rebuy this item.";
-		else
-			%msg = %msg @ "<br>You have to rebuy this item.";
-	}
+// 	if(!%shopObj.buyOnce)
+// 	{
+// 		if(%msg $= "")
+// 			%msg = "You have to rebuy this item.";
+// 		else
+// 			%msg = %msg @ "<br>You have to rebuy this item.";
+// 	}
 
-	if(%msg !$= "")
-		%msg = "<br><br>Warning:<br>" @ %msg;
+// 	if(%msg !$= "")
+// 		%msg = "<br><br>Warning:<br>" @ %msg;
 
-	commandToClient(%this,'MessageBoxYesNo',"Buy: " @ %groupObj.uiName @ "?",
-		"Purchase this for " @ %groupObj.cost @ " points?" @ %msg,
-		'Shop_AcceptItem');
-}
+// 	commandToClient(%this,'MessageBoxYesNo',"Buy: " @ %shopObj.uiName @ "?",
+// 		"Purchase this for " @ %shopObj.cost @ " points?" @ %msg,
+// 		'Shop_AcceptItem');
+// }
 
 function GameConnection::BuyItem(%this,%item,%time)
 {
-	if(isObject(%item))
-		%item = %item.uiName;
+	%shopObj = %item.shopobj;
 
-	%obj = findItemByName(%item);
-	%groupObj = getDRShopGroup().findScript(%item);
-	if(!isObject(%groupObj))
-	{
-		%this.chatMessage("\c6Invalid shop item (\"\c3" @ %item @ "\c6\"). Please contact your super administrator.");
-		return 0;
-	}
-
-	%strName = stripChars(%groupObj.uiName, $Shop::Chars);
+	%strName = stripChars(%shopObj.uiName, $Shop::Chars);
 	%strName = strReplace(%strName, " ", "_");
-
-	if(!%groupObj.buyOnce)
-	{
-		%this.dataInstance($DR::SaveSlot).boughtItem[%strName] = 0;
-		commandToClient(%this, 'DRShop', "SET_BOUGHT", %groupObj.uiName, %this.dataInstance($DR::SaveSlot).boughtItem[%strName]);
-	}
-
-	if(%time < 1) %time = 3;
-	%adminLevel = 0 + %this.isSuperAdmin + %this.isAdmin;
-	if(%adminLevel < %groupObj.adminLevel && !%this.dataInstance($DR::SaveSlot).boughtItem[%strName])
-	{
-		%this.centerPrint("<font:impact:20>ERROR: You cannot purchase this item at this time.",%time);
-		return -1;
-	}
-
-	if(%this.getScore() < %groupObj.cost && !%this.dataInstance($DR::SaveSlot).boughtItem[%strName] && !%this.bypassShop && %groupObj.cost > 0)
-	{
-		if(%this.Shop_Client) commandToClient(%this,'DRShop_MessageBoxOK',"Shop - ERROR","Not enough points!");
-		%this.chatMessage("<font:impact:20>ERROR: Not enough points!");
-		return;
-	}
-	if(!%this.dataInstance($DR::SaveSlot).boughtItem[%strName] && !%this.bypassShop)
-		%this.incScore(-%groupObj.cost);
-
-	if(%this.dataInstance($DR::SaveSlot).boughtItem[%strName])
-	{
-		if(isObject(%pl=%this.player))
-			if(%pl.addNewItem(%obj.uiName)) %this.chatMessage("\c3" @ %obj.uiname @ "\c6 added to your inventory.");
-
-		return;
-	}
-
-	if(%groupObj.buyOnce)
+	talk(%this);
+	if(%shopObj.buyOnce)
 	{
 		%this.dataInstance($DR::SaveSlot).boughtItem[%strName] = 1;
-		if(%groupObj.cost > 0) %this.chatMessage("\c6You have bought this item: \c4" @ %groupObj.uiName @ "\c6, you now equip it! You do not ever have to buy this weapon again, yay!");
+		if(%cost > 0) %this.chatMessage("\c6You have bought this item: \c4" @ %shopObj.uiName @ "\c6, you now equip it! You do not ever have to buy this weapon again, yay!");
+	}
+	else
+	{
+		if(%cost > 0) %this.chatMessage("\c6You have borrowed this item: \c4" @ %shopObj.uiName @ "\c6, you will have to rebuy it every round, what??");
 	}
 
-	if(isObject(%pl=%this.player))
-		if(%pl.addNewItem(%obj.uiName))
-			%this.chatMessage("\c3" @ %obj.uiname @ "\c6 added to your inventory.");
-
-	commandToClient(%this, 'DRShop', "SET_BOUGHT", %groupObj.uiName, %this.dataInstance($DR::SaveSlot).boughtItem[%strName]);
+	return true;
 }
 
 function GameConnection::BuyOldItem(%this, %item, %doNotEquip)
@@ -1253,43 +1230,43 @@ function GameConnection::DisplayItem(%this,%item,%time)
 	%obj = findItemByName(%item);
 	if(!isObject(%obj))
 	{
-		%groupObj = getDRShopGroup().findScript(%item);
-		if(!isObject(%groupObj))
+		%shopObj = getDRShopGroup().findScript(%item);
+		if(!isObject(%shopObj))
 		{
 			%this.chatMessage("\c6Invalid shop item.");
 			return 0;
 		}
 
-		%strName = stripChars(%groupObj.uiName, $Shop::Chars);
+		%strName = stripChars(%shopObj.uiName, $Shop::Chars);
 		%strName = strReplace(%strName, " ", "_");
 
 		if(%time < 1) %time = 3;
 		%adminLevel = 0 + %this.isSuperAdmin + %this.isAdmin;
-		if(%adminLevel < %groupObj.adminLevel && !%this.dataInstance($DR::SaveSlot).boughtItem[%strName]) 
+		if(%adminLevel < %shopObj.adminLevel && !%this.dataInstance($DR::SaveSlot).boughtItem[%strName]) 
 		{
 			%this.centerPrint("<font:impact:20>ERROR: This item cannot be displayed to you.",%time);
 			return 0;
 		}
-		%cost = %groupObj.cost;
+		%cost = %shopObj.cost;
 		if(%cost == 0) %cost = "FREE";
 		else if(%this.dataInstance($DR::SaveSlot).boughtItem[%strName]) %cost = "\c3Already bought";
 		else %cost = %cost @ " Points";
 		%costCol = "\c2";
 		if(%this.getScore() < %cost) %costCol = "\c0";
-		%this.centerPrint("<font:impact:20>\c4" @ %groupObj.uiName @ " \c6- " @ %costCol @ %cost @ "<br><br>\c6" @
-			%groupObj.description, %time);
+		%this.centerPrint("<font:impact:20>\c4" @ %shopObj.uiName @ " \c6- " @ %costCol @ %cost @ "<br><br>\c6" @
+			%shopObj.description, %time);
 
 		return 1;
 	}
 
-	%groupObj = getDRShopGroup().findScript(%obj.uiName);
-	if(!isObject(%groupObj))
+	%shopObj = getDRShopGroup().findScript(%obj.uiName);
+	if(!isObject(%shopObj))
 	{
 		%this.chatMessage("\c6Invalid item.");
 		return 0;
 	}
 
-	%strName = stripChars(%groupObj.uiName, $Shop::Chars);
+	%strName = stripChars(%shopObj.uiName, $Shop::Chars);
 	%strName = strReplace(%strName, " ", "_");
 
 	if(%this.dataInstance($DR::SaveSlot).boughtItem[%obj.getName()] && !%this.dataInstance($DR::SaveSlot).boughtItem[%strName])
@@ -1297,17 +1274,17 @@ function GameConnection::DisplayItem(%this,%item,%time)
 
 	if(%time < 1) %time = 3;
 	%adminLevel = 0 + %this.isSuperAdmin + %this.isAdmin;
-	if(%adminLevel < %groupObj.adminLevel && !%this.dataInstance($DR::SaveSlot).boughtItem[%strName]) 
+	if(%adminLevel < %shopObj.adminLevel && !%this.dataInstance($DR::SaveSlot).boughtItem[%strName]) 
 	{
 		%this.centerPrint("<font:impact:20>ERROR: This item cannot be displayed to you.",%time);
 		return 0;
 	}
-	%cost = %groupObj.cost;
+	%cost = %shopObj.cost;
 	if(%cost == 0) %cost = "FREE";
 	else if(%this.dataInstance($DR::SaveSlot).boughtItem[%strName]) %cost = "\c3Already bought";
 	else %cost = %cost @ " Points";
 	%costCol = "\c2";
 	if(%this.getScore() < %cost) %costCol = "\c0";
-	%this.centerPrint("<font:impact:20>\c4" @ %groupObj.uiName @ " \c6- " @ %costCol @ %cost @ "<br><br>\c6" @
-		%groupObj.description, %time);
+	%this.centerPrint("<font:impact:20>\c4" @ %shopObj.uiName @ " \c6- " @ %costCol @ %cost @ "<br><br>\c6" @
+		%shopObj.description, %time);
 }
