@@ -516,7 +516,7 @@ function fxDTSBrick::DeathRaceLoop(%this,%client)
 					%mini.quickstartTime = getSimTime() + 5000;
 					%mini.chatMessageAll("\c6Quickstart in 5 seconds...");
 				}
-				else if (%mini.quickstartTime < getSimTime());
+				else if(%mini.quickstartTime < getSimTime())
 				{
 					%mini.dr_time = 3;
 				}
