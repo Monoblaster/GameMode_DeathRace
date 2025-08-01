@@ -759,11 +759,13 @@ function DRMenu_Init()
 	%inv.display = "DRMenu_ShopListDisplay";
 	%inv.select = "DRMenu_ShopListSelect";
 	%inv.use = "DRMenu_ShopListUse";
+	%inv.blockQuickstart = true;
 
 	%inv = Inventory_Create("Confirm");
 	%inv.set(0,DRMenuConfirm);
 	%inv.select = "DRMenu_ConfirmSelect";
 	%inv.use = "DRMenu_ConfirmUse";
+	%inv.blockQuickstart = true;
 	
 	%inv = Inventory_Create("Shop");
 	%c = -1;
@@ -772,6 +774,7 @@ function DRMenu_Init()
 	%inv.set(%c++,DRMenuMinigameSpecials);
 	%inv.select = "DRMenu_ShopSelect";
 	%inv.use = "DRMenu_SHopUse";
+	%inv.blockQuickstart = true;
 
 	%inv = Inventory_Create("Equipment");
 	%c = -1;
@@ -792,6 +795,7 @@ function DRMenu_Init()
 	%inv.set(%c++,DRMenuSlotThree);
 	%inv.select = "DRMenu_SwitchSelect";
 	%inv.use = "DRMenu_SwitchUse";
+	%inv.blockQuickstart = true;
 
 	%inv = Inventory_Create("Spawn");
 	%inv.canUseTools = true;
