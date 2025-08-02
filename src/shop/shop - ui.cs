@@ -475,6 +475,7 @@ function DRMenu_ShopUse(%stack,%slot)
 		%buyBlurb = "Buy and equip";
 		%equipBlurb = "Equip";
 	case "DRMenuMinigameSpecials":
+		%borrowblurb = "Buy for next round";
 	}
 	DRMenu_ShopListOpen(%stack,%slot,%shopclass,%icon,%desc,%buyBlurb,%borrowBlurb,%equipBlurb);
 }
